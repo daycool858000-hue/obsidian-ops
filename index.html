@@ -1,0 +1,912 @@
+<!DOCTYPE html><html lang="zh-Hant"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>黑曜行動 OBSIDIAN OPS</title>
+<style>
+:root{--bg:#0b0e0f;--pn:rgba(14,18,18,.9);--ol:#7d8f45;--bl:#4fc3ff;--am:#ffa726;--rd:#e5533d;--tx:#dde6e8;--mu:#8a9799;--sr:env(safe-area-inset-right,0px);--sl:env(safe-area-inset-left,0px);--sb:env(safe-area-inset-bottom,0px);--st:env(safe-area-inset-top,0px);color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--tx);font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;overflow:hidden;user-select:none;-webkit-user-select:none;touch-action:none;position:fixed;inset:0;width:100%;overscroll-behavior:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%}
+#c{position:fixed;inset:0;width:100%;height:100%;display:block}
+.ov{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:radial-gradient(ellipse at 25% 15%,rgba(79,195,255,.14),transparent 55%),rgba(8,10,11,.88);padding:12px;z-index:20;overflow:auto;touch-action:pan-y}
+.ov.on{display:flex}
+.box{max-width:540px;width:100%;max-height:100%;overflow:auto;border:1px solid #2c3a3d;border-left:3px solid var(--ol);background:var(--pn);padding:16px 18px;margin:auto}
+.kick{color:var(--bl);letter-spacing:.35em;font-size:12px}h1{margin:2px 0 4px;font-size:34px;letter-spacing:.12em}h2{margin:0 0 8px;letter-spacing:.1em}
+.mu{color:var(--mu);font-size:13px;line-height:1.6}p{line-height:1.6;font-size:14px;margin:8px 0}
+.b{background:#1b2326;color:var(--tx);border:1px solid #3a4a4e;padding:12px 16px;font:inherit;font-weight:700;letter-spacing:.08em;cursor:pointer;margin:4px 4px 4px 0}
+.b.p{background:var(--ol);color:#0b0e0f;border-color:var(--ol)}.b.on{outline:2px solid var(--bl)}.b:disabled{opacity:.4;cursor:not-allowed}
+.gl{display:flex;flex-direction:column;gap:4px;margin:10px 0}.gi{padding:8px 10px;border:1px solid #2c3a3d;font-size:13px;display:flex;justify-content:space-between;gap:8px}.gi.ok{border-color:var(--ol);color:var(--tx)}.gi:not(.ok){color:#5d6a6c}
+details{font-size:13px;color:var(--mu);line-height:1.7;margin:8px 0}summary{cursor:pointer;color:var(--tx)}
+#hud{position:fixed;inset:0;pointer-events:none;display:none;z-index:5;font-size:13px}
+#xh{position:absolute;box-sizing:border-box;left:50%;top:50%;width:34px;height:34px;margin:-17px 0 0 -17px;border:2px solid rgba(255,255,255,.55);border-radius:50%;box-shadow:0 0 3px #000}#xh:before{content:"";position:absolute;left:13px;top:13px;width:4px;height:4px;border-radius:50%;background:#fff;box-shadow:0 0 2px #000}#xh.on{border-color:var(--rd);box-shadow:0 0 10px var(--rd)}#xh.on:before{background:var(--rd)}
+#hm{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:38px;font-weight:900;opacity:0;text-shadow:0 0 6px #000}
+.dp{position:absolute;left:50%;top:44%;font-weight:900;font-size:20px;text-shadow:0 0 4px #000;animation:dpf .7s forwards;pointer-events:none}@keyframes dpf{to{transform:translateY(-44px);opacity:0}}
+#vg{position:absolute;inset:0;box-shadow:inset 0 0 120px 30px var(--rd);opacity:0}
+.pn{position:absolute;background:var(--pn);border:1px solid #2c3a3d;padding:6px 9px}
+#rd{left:max(8px,env(safe-area-inset-left));top:max(8px,env(safe-area-inset-top));padding:0;border-radius:50%;width:110px;height:110px}
+#st{left:max(8px,env(safe-area-inset-left));top:128px;width:140px}
+.bar{height:8px;background:#222;margin:4px 0}.bar i{display:block;height:100%;background:var(--ol);width:100%}
+#tp{left:50%;top:max(8px,env(safe-area-inset-top));transform:translateX(-50%);text-align:center;font-variant-numeric:tabular-nums}#tp b{font-size:20px;display:block}
+#ob{right:max(8px,env(safe-area-inset-right));top:calc(max(8px,env(safe-area-inset-top)) + 46px);width:200px;line-height:1.6}#ob.hide{display:none}
+#pr{position:absolute;left:50%;top:58%;transform:translateX(-50%);color:var(--am);font-weight:700;text-align:center;text-shadow:0 0 6px #000}
+#pb{width:140px;height:5px;background:#222;margin:4px auto 0;display:none}#pb i{display:block;height:100%;background:var(--am);width:0}
+#ms{position:absolute;left:50%;top:22%;transform:translateX(-50%);padding:6px 14px;background:var(--pn);border-left:3px solid var(--bl);opacity:0;transition:opacity .25s;white-space:nowrap}
+#tc{position:fixed;inset:0;display:none;z-index:6;pointer-events:none}#tc>*{pointer-events:auto;touch-action:none}
+#jz{left:0;bottom:0;width:40%;height:78%;position:absolute}#lz{position:absolute;right:0;top:0;width:60%;height:100%}
+#jb{position:fixed;box-sizing:border-box;width:110px;height:110px;border:2px solid #fff5;border-radius:50%;pointer-events:none!important;background:rgba(20,28,30,.35);left:calc(30px + var(--sl));bottom:calc(24px + var(--sb))}#jb.act{border-color:#fffa}#jb.run{border-color:var(--am);box-shadow:0 0 12px var(--am)}#jk{position:absolute;left:33px;top:33px;width:40px;height:40px;border-radius:50%;background:#fff7}
+.tb{position:absolute;border-radius:50%;border:2px solid #fff6;background:rgba(20,28,30,.6);color:var(--tx);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;-webkit-user-select:none;user-select:none}.tb.dn,.tb.tg{background:rgba(79,195,255,.55)!important;transform:scale(.93)}
+#bv{right:calc(58px + var(--sr));top:calc(8px + var(--st));width:46px;height:42px;border-radius:8px;font-size:12px}
+#menu{background:linear-gradient(90deg,rgba(5,8,9,.82),transparent 30%,transparent 70%,rgba(5,8,9,.82));padding:0;overflow:hidden;align-items:stretch;justify-content:flex-start;pointer-events:none}#menu>*{pointer-events:auto}
+#pv{position:absolute;left:30%;right:30%;top:50px;bottom:66px;touch-action:none}
+.lt{position:absolute;left:calc(14px + var(--sl));top:calc(6px + var(--st));pointer-events:none!important}.lt h1{font-size:22px;margin:0}
+.lp{position:absolute;top:calc(52px + var(--st));bottom:calc(66px + var(--sb));overflow:auto;background:rgba(10,14,15,.74);border:1px solid #2c3a3d;padding:8px 10px;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.lp.l{left:calc(10px + var(--sl));width:176px;border-left:3px solid var(--ol)}.lp.r{right:calc(10px + var(--sr));width:218px;border-right:3px solid var(--bl)}
+.cn{font-size:28px;font-weight:900;letter-spacing:.14em}.sr{display:flex;align-items:center;gap:6px;font-size:11px;margin:3px 0}.sr span{width:30px}.sr i,.ro em{flex:1;height:5px;background:#222;display:block}.sr b,.ro u{display:block;height:100%;background:var(--ol)}
+.tabs{display:flex;gap:6px;margin-bottom:8px}.tabs .b{flex:1;margin:0;padding:9px 0}.ro{display:block;width:100%;text-align:left;background:#141b1d;border:1px solid #2c3a3d;color:var(--tx);padding:7px 9px;margin:0 0 6px;font:inherit;min-height:44px}.ro.on{border-color:var(--bl);box-shadow:inset 0 0 0 1px var(--bl)}.ro small{display:block;color:var(--mu);font-size:11px;margin-top:2px}.ro span{display:flex;gap:3px;margin-top:4px}.ro em{height:4px;display:block}
+.ar{position:absolute;top:50%;width:46px;height:62px;margin-top:-31px;font-size:28px;padding:0;background:rgba(10,14,15,.7)}#cp{left:calc(196px + var(--sl))}#cnx{right:calc(228px + var(--sr))}
+.lb{position:absolute;left:calc(10px + var(--sl));right:calc(10px + var(--sr));bottom:calc(10px + var(--sb));display:flex;gap:8px;align-items:center}.lb .sp{flex:1}.lb .b{margin:0;padding:11px 12px}#df{display:flex;gap:4px}#df .b{padding:11px 10px}#go{min-width:130px;font-size:18px;padding:13px 22px}
+#lt{position:absolute;left:50%;bottom:calc(78px + var(--sb));transform:translateX(-50%);padding:6px 12px;background:var(--pn);border-left:3px solid var(--am);opacity:0;transition:opacity .25s;pointer-events:none!important}
+#sel{flex-direction:column;align-items:stretch;justify-content:flex-start;gap:6px;padding:calc(6px + var(--st)) calc(12px + var(--sr)) calc(8px + var(--sb)) calc(12px + var(--sl));background:radial-gradient(ellipse at 30% 10%,rgba(79,195,255,.16),transparent 55%),rgba(7,10,11,.96)}
+.shd{display:flex;justify-content:space-between;align-items:center}.shd .b{margin:0;padding:8px 12px}.sl{font-size:11px;color:var(--mu);letter-spacing:.2em;margin-bottom:3px}
+.sc{display:flex;gap:8px;overflow-x:auto;overflow-y:hidden;touch-action:pan-x;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+.wc{flex:0 0 150px;height:104px;position:relative;text-align:left;border:1px solid #2c3a3d;color:var(--tx);padding:8px 10px;font:inherit;display:flex;flex-direction:column;justify-content:flex-end;background-blend-mode:screen;overflow:hidden}
+.wc:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.04) 0 1px,transparent 1px 14px);pointer-events:none}.wc.on{border-color:var(--bl);box-shadow:0 0 0 2px var(--bl)}.wc b{font-size:16px;letter-spacing:.08em;position:relative}.wc small{color:#b8c6c9;font-size:10px;letter-spacing:.1em;position:relative}.wc span{font-size:11px;color:var(--am);position:relative}.wc em{font-style:normal;font-size:10px;color:#c5d4a0;position:relative}
+.bd{position:absolute;top:6px;right:6px;font-style:normal;font-size:10px;padding:2px 6px;background:#3a2a10;color:var(--am);border:1px solid var(--am)}.bd.ok{background:#1f3318;color:#9fe07a;border-color:#9fe07a}
+.mc2{flex:0 0 124px;height:64px;text-align:left;background:#12181a;border:1px solid #2c3a3d;color:var(--tx);padding:6px 9px;font:inherit}.mc2.on{border-color:var(--bl);box-shadow:inset 0 0 0 1px var(--bl)}.mc2.dim{opacity:.45}.mc2 b{display:block;font-size:14px}.mc2 small{display:block;font-size:10px;color:var(--mu);margin-top:3px}
+.sf{display:flex;gap:10px;align-items:center;margin-top:auto}#sbrief{flex:1;font-size:13px;line-height:1.5}#sbrief .mu{font-size:11px}.sf .b{margin:0}#sgo{min-width:120px;font-size:18px;padding:13px 20px}
+
+
+#bf{right:calc(20px + var(--sr));bottom:calc(22px + var(--sb));width:90px;height:90px;background:rgba(229,83,61,.4);font-size:15px}#ba{right:calc(26px + var(--sr));bottom:calc(124px + var(--sb));width:62px;height:62px}#bu{right:calc(124px + var(--sr));bottom:calc(26px + var(--sb));width:64px;height:64px}#br{right:calc(122px + var(--sr));bottom:calc(100px + var(--sb));width:56px;height:56px}#bh{right:calc(190px + var(--sr));bottom:calc(92px + var(--sb));width:52px;height:52px}#bl{left:calc(30px + var(--sl));bottom:calc(150px + var(--sb));width:64px;height:64px;background:rgba(229,83,61,.35)}#bp{right:calc(8px + var(--sr));top:calc(8px + var(--st));width:42px;height:42px;border-radius:8px}
+#rot{position:fixed;inset:0;background:#000d;z-index:50;display:none;align-items:center;justify-content:center;text-align:center}
+@media (orientation:portrait) and (pointer:coarse){#rot{display:flex}}
+@media (pointer:coarse){#ob{width:150px;font-size:11px}#st{top:122px}}
+#kd{font:700 34px monospace;letter-spacing:.4em;text-align:center;color:var(--bl);margin:8px 0}.kg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.kg .b{margin:0;font-size:20px}
+.sh{animation:sh .3s}@keyframes sh{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.rs{display:grid;grid-template-columns:1fr auto;gap:4px 12px;font-size:14px;margin:10px 0}.rs span:nth-child(even){text-align:right;font-weight:700}
+</style></head><body>
+<canvas id="c"></canvas>
+<div id="hud"><div id="xh"></div><div id="hm">✕</div><div id="vg"></div>
+<canvas id="rd" class="pn" width="110" height="110"></canvas>
+<div id="st" class="pn">生命 <b id="hp">100</b><div class="bar"><i id="hb"></i></div>醫療包 <b id="md">1</b></div>
+<div id="tp" class="pn"><b id="tm">10:00</b><span id="am">30 / 120</span><b id="kill-count-display" style="display:block;font-size:12px;color:var(--am)"></b><small id="fp" style="display:block;color:var(--mu);font-size:10px"></small><small id="dg" style="display:block;color:var(--am);font-size:10px"></small></div>
+<div id="ob" class="pn"></div><div id="pr"></div><div id="pb"><i></i></div><div id="ms"></div></div>
+<div id="tc"><div id="jz"></div><div id="lz"></div><div id="jb"><div id="jk"></div></div>
+<div class="tb" id="bf">開火</div><div class="tb" id="bl">開火</div><div class="tb" id="bu">互動</div><div class="tb" id="ba">瞄準</div><div class="tb" id="br">換彈</div><div class="tb" id="bh">治療</div><div class="tb" id="bv">視角</div><div class="tb" id="bp">⏸</div></div>
+<div id="rot"><div>請將裝置橫向持握<br><span class="mu">以獲得最佳遊玩體驗</span></div></div>
+
+<div id="menu" class="ov on"><div id="pv"></div>
+<div class="lt"><div class="kick">OBSIDIAN OPS</div><h1>黑曜行動</h1></div>
+<div class="lp l"><div class="cn" id="cn"></div><div class="kick" id="ce" style="letter-spacing:.1em;margin:2px 0 6px"></div><div id="character-stat-bars"></div><p class="mu" id="ci" style="font-size:12px;margin:6px 0 0"></p></div>
+<button class="b ar" id="cp">‹</button><button class="b ar" id="cnx">›</button>
+<div class="lp r"><div class="tabs"><button class="b" id="t1">武器</button><button class="b" id="t2">造型</button></div><div id="pw"></div></div>
+<div id="lt"></div>
+<div class="lb"><button class="b" id="mo">設定</button><button class="b" id="ab">成果</button><div class="sp" id="lm" style="font-size:12px;color:var(--mu);text-align:center"></div><button class="b" id="fv">臉部特寫</button><button class="b p" id="go">任務選擇</button></div></div>
+<div id="more" class="ov"><div class="box"><h2>任務・設定</h2>
+<p>據點中央建築內的終端機能開啟東側撤離閘門。搜索容器取得 <b>3 張密碼線索</b>，輸入密碼後前往<b>撤離區</b>停留 5 秒。守衛會巡邏、聽見槍聲會前來查看。</p>
+<button class="b" id="sn">音效：開</button><div style="margin:8px 0;font-size:13px"><label>視角靈敏度 <input type="range" class="sv" min=".4" max="2" step=".05"></label> <button class="b aa">瞄準輔助：開</button></div>
+<div class="gl" id="gl"></div><div class="mu" id="rec"></div>
+<details><summary>操作說明</summary>手機（請橫向）：左下搖桿移動（推到外圈會衝刺）、右側空白處滑動轉視角、右下「開火」可邊按邊滑動瞄準（左側另有開火鍵）、「瞄準」開關開鏡、換彈、互動（按住搜索）、治療、右上「視角」切換第一／第三人稱、⏸ 暫停。<br>iPhone Safari 不支援網頁全螢幕；若工具列遮住畫面，請收合網址列。<br>電腦：WASD、滑鼠、左鍵射擊、右鍵開鏡、R 換彈、E 互動、H 治療、V 切換視角、Tab 面板。</details>
+<button class="b p" id="mc">返回整備</button></div></div>
+
+<div id="sel" class="ov"><div class="shd"><div><div class="kick">MISSION SELECT</div><h2 style="margin:0">任務選擇</h2></div><button class="b" id="sx">返回整備</button></div>
+<div class="sw"><div class="sl">世界</div><div class="sc" id="wl"></div></div>
+<div class="sw"><div class="sl">玩法</div><div class="sc" id="ml"></div></div>
+<div class="sf"><div id="sbrief"></div><div id="df"></div><button class="b p" id="sgo">出發</button></div></div>
+<div id="cs" class="ov"><div class="box"><h2 id="ct">案情分析</h2><div id="cf" class="mu" style="font-size:12px;line-height:1.7"></div><p id="cq">你認為內鬼是誰？</p><div id="cb"></div><p id="cm" class="mu" style="min-height:2.6em"></p><button class="b" id="cx">先繼續調查</button></div></div>
+<div id="ac" class="ov"><div class="box"><h2>任務成果與收藏</h2><div class="tabs"><button class="b" id="a1">進度</button><button class="b" id="a2">成就</button><button class="b" id="a3">收藏</button></div><div id="av" style="font-size:13px;max-height:46vh;overflow:auto"></div><button class="b p" id="ax">返回</button></div></div>
+<div id="ps" class="ov"><div class="box"><h2>暫停</h2><button class="b p" id="rsm">繼續</button><button class="b" id="rst">重新開始</button><button class="b" id="lb1">返回大廳</button><div style="margin:8px 0;font-size:13px"><label>視角靈敏度 <input type="range" class="sv" min=".4" max="2" step=".05"></label> <button class="b aa">瞄準輔助：開</button></div></div></div>
+<div id="kp" class="ov"><div class="box"><h2>終端機・閘門密碼</h2><div id="kd">_ _ _</div><p class="mu" id="kn"></p><div class="kg" id="kg"></div><p id="km" class="mu"></p><button class="b" id="kc">關閉</button></div></div>
+<div id="en" class="ov"><div class="box"><div class="kick" id="er"></div><h1 id="et"></h1><div class="rs" id="es"></div><button class="b p" id="ag">再次挑戰</button><button class="b" id="lb2">返回大廳</button></div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const $=i=>document.getElementById(i),T=THREE,TOUCH=matchMedia('(pointer:coarse)').matches||'ontouchstart' in window,rnd=n=>Math.floor(Math.random()*n);
+const DIFF={easy:{n:'一般',c:4,hp:45,dmg:5,acc:.4,fr:1.3,ammo:150,time:720},normal:{n:'進階',c:6,hp:60,dmg:8,acc:.55,fr:1,ammo:120,time:600},hard:{n:'專家',c:8,hp:80,dmg:11,acc:.7,fr:.8,ammo:100,time:540}};
+const GAMES=[{n:'戰術撤離',d:'第一人稱・單人・可遊玩',ok:1},{n:'情報解碼',d:'規劃中・尚未開發'},{n:'密室逃脫',d:'規劃中・尚未開發'},{n:'戰術指揮',d:'規劃中・尚未開發'}];
+let diff='easy',snd=true,state='menu',SV={runs:0,wins:0,best:{},set:{sens:1,assist:true}};
+try{SV=Object.assign(SV,JSON.parse(localStorage.getItem('obsops1')||'{}'))}catch(e){}
+const save=()=>{try{localStorage.setItem('obsops1',JSON.stringify(SV))}catch(e){}};
+/* ---------- 音效 ---------- */
+let AC;function au(){if(!AC)try{AC=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}if(AC&&AC.state=='suspended')AC.resume();return AC}
+function sfx(k){if(!snd)return;const a=au();if(!a)return;const t=a.currentTime,g=a.createGain();g.connect(a.destination);
+if(k=='shot'||k=='eshot'){const sh=k=='shot',b=a.createBuffer(1,a.sampleRate*(sh?WP.sl:.12),a.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,sh?WP.sd:3);const s=a.createBufferSource();s.buffer=b;g.gain.value=sh?WP.sg:.14;s.connect(g);s.start(t);return}
+const o=a.createOscillator(),m={hit:[900,.06,.1],kill:[500,.15,.14],hurt:[110,.2,.25],click:[300,.04,.1],ok:[880,.2,.12],bad:[160,.25,.12],alert:[620,.12,.08],rel:[240,.08,.1],pick:[700,.1,.1]}[k]||[500,.1,.1];
+o.connect(g);o.frequency.value=m[0];o.type=k=='hurt'?'sawtooth':'square';g.gain.setValueAtTime(m[2],t);g.gain.exponentialRampToValueAtTime(.001,t+m[1]);o.start(t);o.stop(t+m[1])}
+/* ---------- 場景 ---------- */
+SV.set=Object.assign({sens:1,assist:true},SV.set);SV.sel=Object.assign({c:0,w:0,o:0,v:0,wd:0,md:'extract'},SV.sel);SV.wr=SV.wr||{};SV.col=SV.col||{};SV.ach=SV.ach||{};SV.ver=2;
+let DPR=TOUCH?Math.min(devicePixelRatio,1.25):Math.min(devicePixelRatio,1.5);const cv=$('c'),R=new T.WebGLRenderer({canvas:cv,antialias:!TOUCH,powerPreference:'high-performance'});R.setPixelRatio(DPR);
+const sc=new T.Scene();sc.background=new T.Color(0x0c1214);sc.fog=new T.Fog(0x0c1214,12,70);
+const cam=new T.PerspectiveCamera(75,1,.05,100);cam.rotation.order='YXZ';sc.add(cam);const pcam=new T.PerspectiveCamera(32,1,.1,50),PS=new T.Scene();
+function rs(){const w=innerWidth,h=innerHeight;R.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix();pcam.aspect=w/h;pcam.updateProjectionMatrix();if(TOUCH&&h>w&&state=='play')pause()}
+addEventListener('resize',rs);addEventListener('orientationchange',()=>setTimeout(rs,250));if(window.visualViewport)visualViewport.addEventListener('resize',rs);rs();
+const hl=new T.HemisphereLight(0x9fc4dc,0x222418,.95);sc.add(hl);const dl=new T.DirectionalLight(0xffe0b0,.7);dl.position.set(-20,40,10);sc.add(dl);
+const fc=document.createElement('canvas');fc.width=fc.height=64;{const x=fc.getContext('2d');x.fillStyle='#232a2b';x.fillRect(0,0,64,64);x.strokeStyle='#34413f';x.lineWidth=2;x.strokeRect(0,0,64,64)}
+const ft=new T.CanvasTexture(fc);ft.wrapS=ft.wrapT=T.RepeatWrapping;ft.repeat.set(30,30);
+const fl=new T.Mesh(new T.PlaneGeometry(60,60),new T.MeshLambertMaterial({map:ft}));fl.rotation.x=-Math.PI/2;sc.add(fl);
+const BND=[-29,29,-29,29],COL=[],WALLS=[],mc={},mat=c=>mc[c]||(mc[c]=new T.MeshLambertMaterial({color:c}));
+function box(x,z,w,d,h,c,solid=true,y0=0){const m=new T.Mesh(new T.BoxGeometry(w,h,d),typeof c=='object'?c:mat(c));m.position.set(x,y0+h/2,z);sc.add(m);m.updateMatrixWorld();let col=null;if(solid){col={x0:x-w/2,x1:x+w/2,z0:z-d/2,z1:z+d/2};COL.push(col);WALLS.push(m)}return{m,col}}
+[[0,-30,61,1,4],[0,30,61,1,4],[-30,0,1,60,4],[30,0,1,60,4],[24,-16.5,1,27,4],[24,16.5,1,27,4]].forEach(a=>box(...a,0x2e3a3c));
+[[-6,-8,8,.6,3.2],[6,-8,8,.6,3.2],[-6,8,8,.6,3.2],[6,8,8,.6,3.2],[-10,-4.5,.6,7,3.2],[-10,4.5,.6,7,3.2],[10,0,.6,16.6,3.2]].forEach(a=>box(...a,0x4a5648));
+[[0,-3,2,1,1.5],[-20,-6,2.4,1.2,1.5],[-20,6,2.4,1.2,1.5],[-14,0,1.2,3,1.5],[-16,-14,3,1.4,1.5],[-6,-16,1.4,3,1.5],[-4,-22,3,1.2,1.5],[-14,10,3,1.4,1.5],[-8,22,3,1.2,1.5],[14,-14,3,1.4,1.5],[16,12,1.4,3,1.5],[18,-4,2.4,1.2,1.5],[14,20,3,1.2,1.5],[6,-22,1.4,3,1.5],[-24,-20,2,2,2.4],[22,24,2,2,2.4]].forEach(a=>box(...a,0x5d6b3a));
+const doorMat=new T.MeshLambertMaterial({color:0xffa726,emissive:0x552d00}),DOOR=box(24,0,1,6,4,doorMat);
+const TERM={x:6,z:-7.2};box(6,-7.2,1.4,.8,1.2,0x20282a);
+const scr=new T.Mesh(new T.PlaneGeometry(.9,.5),new T.MeshBasicMaterial({color:0x4fc3ff}));scr.position.set(6,.95,-6.79);sc.add(scr);
+const LP=[[-24,14],[-18,-18],[-6,-26],[-2,24],[-7,5],[6,5],[15,-20],[20,16]],L=[];
+LP.forEach(([x,z])=>{box(x,z,1,1,.9,0x5a4c2c);const lid=new T.Mesh(new T.BoxGeometry(1.06,.12,1.06),new T.MeshLambertMaterial({color:0xffa726,emissive:0x442600}));lid.position.set(x,.95,z);sc.add(lid);L.push({x,z,lid,open:false})});
+const EXT=new T.Group();{const r=new T.Mesh(new T.RingGeometry(2.5,3,40),new T.MeshBasicMaterial({color:0x6bff8a,transparent:true,opacity:.8,side:T.DoubleSide}));r.rotation.x=-Math.PI/2;r.position.y=.06;const b=new T.Mesh(new T.CylinderGeometry(3,3,12,24,1,true),new T.MeshBasicMaterial({color:0x6bff8a,transparent:true,opacity:.13,side:T.DoubleSide}));b.position.y=6;EXT.add(r,b);EXT.position.set(27.5,0,0);EXT.visible=false;sc.add(EXT)}
+let WD=0;
+/* ---------- 世界切換 ---------- */
+const WG={0:{col:COL.slice(),walls:WALLS.slice(),bg:0x0c1214,fn:12,ff:70,b:[-29,29,-29,29],hc:0x9fc4dc,hg:0x222418,hi:.95,dc:0xffe0b0,di:.7}};
+const G1=new T.Group();sc.children.slice().forEach(c=>{if(c.isMesh||c===EXT)G1.add(c)});sc.add(G1);
+const RUG=new T.Group();RUG.visible=false;sc.add(RUG);const RCOL=[],RWALLS=[];
+WG[2]={col:RCOL,walls:RWALLS,bg:0x241a10,fn:8,ff:55,b:[-35.5,59.5,-23.5,15.5],hc:0xffd9a8,hg:0x4a3a22,hi:.8,dc:0xffb060,di:.45};
+function useWorld(i){const w=WG[i];COL.length=0;WALLS.length=0;w.col.forEach(c=>COL.push(c));w.walls.forEach(c=>WALLS.push(c));G1.visible=i==0;RUG.visible=i==2;LBG.visible=i==1;for(const k in WG)if(WG[k].grp)WG[k].grp.visible=(k==i);BND.splice(0,4,...w.b);sc.background.setHex(w.bg);sc.fog.color.setHex(w.bg);sc.fog.near=w.fn;sc.fog.far=w.ff;hl.color.setHex(w.hc);hl.groundColor.setHex(w.hg);hl.intensity=w.hi;dl.color.setHex(w.dc);dl.intensity=w.di}
+function openDoor(){const a=WALLS.indexOf(DOOR.m);if(a>=0)WALLS.splice(a,1);const b=COL.indexOf(DOOR.col);if(b>=0)COL.splice(b,1);EXT.visible=true}
+/* ---------- 世界 3：失落遺跡（探險摸金） ---------- */
+const cvs=(w,h,f)=>{const c=document.createElement('canvas');c.width=w;c.height=h;f(c.getContext('2d'));const t=new T.CanvasTexture(c);t.wrapS=t.wrapT=T.RepeatWrapping;return t};
+const stoneT=cvs(128,128,x=>{x.fillStyle='#7a6e5c';x.fillRect(0,0,128,128);for(let r=0;r<4;r++)for(let c=0;c<4;c++){x.fillStyle='hsl(35,'+(10+Math.random()*8)+'%,'+(34+Math.random()*12)+'%)';x.fillRect(c*32+(r%2)*16+1,r*32+1,30,30)}x.strokeStyle='#3d352a';x.lineWidth=2;for(let r=0;r<=4;r++){x.beginPath();x.moveTo(0,r*32);x.lineTo(128,r*32);x.stroke()}});
+const sandT=cvs(128,128,x=>{x.fillStyle='#b39863';x.fillRect(0,0,128,128);for(let i=0;i<500;i++){x.fillStyle='rgba('+(Math.random()<.5?'90,70,40':'230,205,150')+',.18)';x.fillRect(Math.random()*128,Math.random()*128,2,2)}});
+const SMC={},sm=(l,h)=>{const a=Math.max(1,Math.round(l/3)),b=Math.max(1,Math.round(h/3)),k=a+'|'+b;if(SMC[k])return SMC[k];const t=stoneT.clone();t.needsUpdate=true;t.repeat.set(a,b);return SMC[k]=new T.MeshLambertMaterial({map:t})};
+function rb(x,z,w,d,h,mt,solid=true,y0=0){const m=new T.Mesh(new T.BoxGeometry(w,h,d),mt||sm(Math.max(w,d),h));m.position.set(x,y0+h/2,z);RUG.add(m);m.updateMatrixWorld();let col=null;if(solid){col={x0:x-w/2,x1:x+w/2,z0:z-d/2,z1:z+d/2};RCOL.push(col);RWALLS.push(m)}return{m,col,y:m.position.y}}
+function fp(x,z,w,d,tex,ceil){const t=tex.clone();t.needsUpdate=true;t.repeat.set(w/4,d/4);const m=new T.Mesh(new T.PlaneGeometry(w,d),new T.MeshLambertMaterial({map:t}));m.rotation.x=-Math.PI/2;m.position.set(x,0,z);RUG.add(m);if(ceil){const c=new T.Mesh(new T.PlaneGeometry(w,d),new T.MeshLambertMaterial({color:0x2a241c}));c.rotation.x=Math.PI/2;c.position.set(x,5,z);RUG.add(c)}}
+fp(-22,0,28,32,sandT);fp(0,0,16,5,stoneT,1);fp(18,0,20,28,stoneT,1);fp(37,0,18,24,stoneT,1);fp(53,0,14,12,stoneT,1);fp(-20,-20,8,8,stoneT,1);
+// 庭院
+rb(-36,0,1,33,5);rb(-29.25,-16,14.5,1,5);rb(-12.75,-16,10.5,1,5);rb(-22,16,29,1,5);rb(-8,-9.25,1,13.5,5);rb(-8,9.25,1,13.5,5);
+const DM=new T.MeshLambertMaterial({color:0x6b5a3a,emissive:0x331a00}),SW=rb(-20,-16,4,1,5,DM);
+// 暗道
+rb(-24,-20,1,8,4);rb(-16,-20,1,8,4);rb(-20,-24,9,1,4);
+// 陷阱通道
+rb(0,-3,16,1,4);rb(0,3,16,1,4);
+// 符文廳
+rb(18,-14,21,1,5);rb(18,14,21,1,5);rb(8,-8.25,1,11.5,5);rb(8,8.25,1,11.5,5);rb(28,-8.25,1,11.5,5);rb(28,8.25,1,11.5,5);const GT=rb(28,0,1,5,4.5,DM);
+// 墓室與寶藏庫
+rb(37,-12,19,1,5);rb(37,12,19,1,5);rb(46,-7.5,1,9,5);rb(46,7.5,1,9,5);const VD=rb(46,0,1,6,4.5,DM);rb(53,-6,15,1,4);rb(53,6,15,1,4);rb(60,0,1,12,4);
+[[-28,-6],[-28,6],[-18,-6],[-18,6],[-12,3],[18,-3.5],[18,3.5],[32,-6],[32,6],[42,-6],[42,6]].forEach(a=>rb(a[0],a[1],1.3,1.3,4.6));
+rb(-24,0,1.3,1.3,1.4);rb(-31,-6,2.2,1.4,.9);rb(-9,10,2,1.6,1);rb(34,-9,3,1.4,1.2);rb(34,9,3,1.4,1.2);rb(41,-9,3,1.4,1.2);rb(41,9,3,1.4,1.2);
+// 石像、祭壇
+const stMat=new T.MeshLambertMaterial({color:0x5e5546});rb(-20,-14.2,1.2,1.1,2.4,stMat);const eyeM=new T.MeshBasicMaterial({color:0xffa726});[-.25,.25].forEach(o=>{const e=new T.Mesh(new T.BoxGeometry(.14,.08,.04),eyeM);e.position.set(-20+o,2,-13.62);RUG.add(e)});
+rb(38,0,2,2,1.1);const sock=new T.Mesh(new T.OctahedronGeometry(.3),new T.MeshBasicMaterial({color:0x4fc3ff}));sock.position.set(38,1.5,0);sock.visible=false;RUG.add(sock);
+// 符文板
+const SYC=[0xffa726,0x4fc3ff,0x6bff8a,0xe5533d],SYN=['日輪','月牙','星芒','菱晶'],SYD=['圓形＋放射光芒','彎月形','五芒星','菱形'];
+const SYM=[0,1,2,3].map(s=>cvs(64,64,x=>{const col='#'+SYC[s].toString(16).padStart(6,'0');x.fillStyle='#1b1815';x.fillRect(0,0,64,64);x.strokeStyle=col;x.fillStyle=col;x.lineWidth=3;x.strokeRect(3,3,58,58);
+if(s==0){x.beginPath();x.arc(32,32,10,0,7);x.fill();for(let i=0;i<8;i++){const a=i*Math.PI/4;x.beginPath();x.moveTo(32+Math.cos(a)*15,32+Math.sin(a)*15);x.lineTo(32+Math.cos(a)*24,32+Math.sin(a)*24);x.stroke()}}
+else if(s==1){x.beginPath();x.arc(32,32,20,0,7);x.fill();x.fillStyle='#1b1815';x.beginPath();x.arc(40,28,17,0,7);x.fill()}
+else if(s==2){x.beginPath();for(let i=0;i<10;i++){const r=i%2?9:22,a=-Math.PI/2+i*Math.PI/5;x.lineTo(32+Math.cos(a)*r,32+Math.sin(a)*r)}x.closePath();x.fill()}
+else{x.beginPath();x.moveTo(32,8);x.lineTo(52,32);x.lineTo(32,56);x.lineTo(12,32);x.closePath();x.fill()}}));
+const plates=[[14,-7],[14,7],[21,-7],[21,7]].map(([x,z])=>{const sd=new T.MeshLambertMaterial({color:0x3a342a}),tm=new T.MeshLambertMaterial({map:SYM[0]}),m=new T.Mesh(new T.BoxGeometry(2,.14,2),[sd,sd,tm,sd,sd,sd]);m.position.set(x,.07,z);RUG.add(m);return{x,z,tm,sym:0,was:false}});
+// 石板（線索）
+const tabs=[[-32,-12],[-24,12],[-13,13],[-31,3]].map(([x,z])=>{const m=rb(x,z,.9,.3,1.4,new T.MeshLambertMaterial({map:stoneT}));const gl=new T.Mesh(new T.BoxGeometry(.5,.08,.02),new T.MeshBasicMaterial({color:0xffa726}));gl.position.set(x,1,z+.17);RUG.add(gl);return{m,gl,x,z}});
+// 寶物、寶石、急救包
+const TRP=[[-30,11],[-10,-13],[11,11],[-22,-19],[54,-3.5],[54,3.5]],TRN=['金面具','古代金幣','青玉神像','黃金項鍊','星象儀','法老王冠'],TRV=[300,200,500,400,600,1000];
+const trs=TRP.map(([x,z])=>{rb(x,z,.7,.7,.5);const m=new T.Mesh(new T.OctahedronGeometry(.28),new T.MeshLambertMaterial({color:0xffc933,emissive:0x664400}));m.position.set(x,.85,z);RUG.add(m);return m});
+rb(-20,-21.5,.7,.7,.6);const gemM=new T.Mesh(new T.OctahedronGeometry(.3),new T.MeshBasicMaterial({color:0x4fc3ff}));gemM.position.set(-20,1,-21.5);RUG.add(gemM);
+const medM=new T.Mesh(new T.BoxGeometry(.5,.35,.35),new T.MeshLambertMaterial({color:0xe6e6e6,emissive:0x333333}));medM.position.set(-18,.2,-19);RUG.add(medM);
+// 尖刺陷阱
+const SPM=new T.MeshLambertMaterial({color:0xbfc5c8}),traps=[-4.5,0,4.5].map((x,i)=>{const g=new T.Group();g.position.set(x,0,0);const slab=new T.Mesh(new T.BoxGeometry(3,.1,5),new T.MeshLambertMaterial({color:0x3a2a22,emissive:0x220000}));slab.position.y=.05;g.add(slab);const sp=new T.Group();g.add(sp);for(let a=0;a<4;a++)for(let b=0;b<3;b++){const c=new T.Mesh(new T.ConeGeometry(.13,.8,6),SPM);c.position.set(-1.1+a*.73,.4,-1.6+b*1.6);sp.add(c)}RUG.add(g);return{x,off:i*.33,sp,slab}});
+// 火把光源
+const lights=[[17,4,0],[38,4,0],[-20,3,-20]].map(([x,y,z])=>{const l=new T.PointLight(0xffa550,1.1,24);l.position.set(x,y,z);RUG.add(l);return l});
+const RU={ia:[],plates,traps,tabs,trs,lights,anim:[],pops:[],gate:GT,sw:SW,vd:VD};
+const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+function openSolid(o){const a=RWALLS.indexOf(o.m),b=WALLS.indexOf(o.m);if(b>=0)WALLS.splice(b,1);const c=COL.indexOf(o.col);if(c>=0)COL.splice(c,1);RU.anim.push(o)}
+const IA=(x,z,k,label,act,av,extra)=>{const o=Object.assign({x,z,k,label,act,av,done:false},extra);RU.ia.push(o);return o};
+tabs.forEach((t,i)=>IA(t.x,t.z,'tab','讀取石板',o=>{o.done=true;G.tabN++;t.gl.material.color.setHex(0x555555);sfx('pick');const s=G.seq[i];msg('石板：第 '+(i+1)+' 步＝【'+SYN[s]+'】（'+SYD[s]+'）','var(--am)')},()=>i<G.n,{i}));
+RU.statue=IA(-20,-13,'st','調查可疑的石像',o=>{o.done=true;G.secret=true;openSolid(SW);sfx('ok');msg('石像的雙眼亮起，北面的牆壁緩緩移開！','var(--am)')});
+RU.gem=IA(-20,-21.5,'gem','取走古代寶石',o=>{o.done=true;G.gem=true;gemM.visible=false;sfx('ok');msg('取得古代寶石！帶回墓室的祭壇。','var(--am)')},()=>G.secret);
+IA(-18,-19,'med','取用急救包',o=>{o.done=true;medM.visible=false;P.hp=Math.min(P.mx,P.hp+40);sfx('ok');msg('生命 +40','var(--ol)')},()=>G.secret);
+RU.altar=IA(38,0,'alt','調查祭壇',o=>{if(!G.gem){msg('祭壇有一個寶石形狀的凹槽，似乎還缺少某樣東西。');sfx('click');return}o.done=true;G.vault=true;sock.visible=true;openSolid(VD);sfx('ok');msg('寶石嵌入祭壇，寶藏庫的大門開啟了！','var(--ol)')});
+TRP.forEach(([x,z],i)=>IA(x,z,'tr','搜集寶物',o=>{o.done=true;G.tr++;G.val+=TRV[i];collect('ru_t'+i);RU.pops.push({m:trs[i],t:.7});sfx('ok');msg('發現寶物：'+TRN[i]+'（價值 '+TRV[i]+'）','var(--am)')},i==3?()=>G.secret:i>3?()=>G.vault:null));
+function resetRuins(){const D=DIFF[diff];CH=CHARS[SV.sel.c];WP=WEAPONS[SV.sel.w];OI=selOI();TPS=!!SV.sel.v;
+P={x:-33,z:0,yaw:-Math.PI/2,pitch:0,hp:CH.hp,mx:CH.hp,med:0};W={mag:WP.mag,mx:WP.mag,res:Math.round(D.ammo*WP.rs*CH.am),cd:0,rl:0,shots:0,hits:0,heat:0,ads:0,kick:0};
+const n=diff=='hard'?4:3;G={hu:0,at:0,fr:1,t:D.time*1.5,el:0,kills:0,val:0,clues:[null,null,null],items:[],door:false,fails:0,ext:0,s:0,n,seq:shuf([0,1,2,3]).slice(0,n),step:0,tabN:0,gate:false,secret:false,gem:false,vault:false,tr:0,dmgT:0,inv:0,zone:'',obj:null};
+E.forEach(e=>sc.remove(e.g));E=[];EP=[];
+const sy=shuf([0,1,2,3]);plates.forEach((p,i)=>{p.sym=sy[i];p.tm.map=SYM[sy[i]];p.tm.emissive.setHex(0);p.tm.needsUpdate=true;p.was=false});
+[GT,SW,VD].forEach(o=>{o.m.position.y=o.y;o.m.visible=true;if(!WALLS.includes(o.m)){WALLS.push(o.m);COL.push(o.col)}});RU.anim=[];RU.pops=[];
+RU.ia.forEach(o=>o.done=false);tabs.forEach((t,i)=>{t.m.m.visible=i<n;t.gl.visible=i<n;t.gl.material.color.setHex(0xffa726)});trs.forEach(m=>{m.visible=true;m.position.y=.85});gemM.visible=true;medM.visible=true;sock.visible=false;
+cam.fov=75;cam.updateProjectionMatrix();buildLoadout()}
+function nearR(){let b=null,bd=2.7;const fx=-Math.sin(P.yaw),fz=-Math.cos(P.yaw);for(const o of RU.ia){if(o.done||(o.av&&!o.av())||(o.k=='tab'&&o.i>=G.n))continue;const dx=o.x-P.x,dz=o.z-P.z,d=Math.hypot(dx,dz);if(d<bd&&(dx*fx+dz*fz)/(d||1)>.35){bd=d;b=o}}return b}
+function stepPlate(p){if(p.sym==G.seq[G.step]){G.step++;p.tm.emissive.setHex(SYC[p.sym]);sfx('ok');if(G.step>=G.n){G.gate=true;openSolid(GT);msg('符文全部亮起，石門隆隆開啟！','var(--ol)')}else msg('符文亮起 '+G.step+'／'+G.n,'var(--bl)')}
+else{const k=G.step,d=diff=='hard'?15:10;G.step=0;G.fails++;plates.forEach(q=>q.tm.emissive.setHex(0));G.dmgT+=d;sfx('bad');msg('機關觸發，毒針射出！（-'+d+'）你剛才連續踏對了 '+k+' 步。'+(G.fails>=2&&G.tabN<G.n?'還有石板沒讀完，去庭院找找。':''),'var(--rd)');hurt(d)}}
+function ruinStep(dt,tg){const R=RU;let pr='',pg=0;G.inv=Math.max(0,G.inv-dt);const per=diff=='hard'?1.6:diff=='normal'?2:2.4;
+R.traps.forEach(t=>{const ph=((G.el/per)+t.off)%1,st=ph<.55?0:ph<.7?1:2;t.sp.scale.y=st==0?.04:st==1?.35:1;t.slab.material.emissive.setHex(st==2?0xaa0000:st==1?0x553300:0x220000);
+if(st==2&&!G.inv&&Math.abs(P.x-t.x)<1.7&&Math.abs(P.z)<2.7){G.inv=1;G.dmgT+=15;sfx('bad');msg('踩到尖刺！（-15）抓準尖刺收起的時機再通過。','var(--rd)');hurt(15)}});
+R.lights.forEach((l,i)=>{l.intensity=1.1+Math.sin(G.el*7+i*2)*.12+(Math.random()<.03?.3:0)});
+R.trs.forEach(m=>{if(m.visible)m.rotation.y+=dt*1.5});
+R.plates.forEach(p=>{const on=Math.hypot(P.x-p.x,P.z-p.z)<1.15;if(on&&!p.was&&!G.gate)stepPlate(p);p.was=on});
+R.anim=R.anim.filter(o=>{o.m.position.y-=dt*2.5;if(o.m.position.y<=o.y-5.6){o.m.visible=false;return false}return true});
+R.pops=R.pops.filter(a=>{a.t-=dt;a.m.position.y+=dt*2.2;a.m.rotation.y+=dt*9;if(a.t<=0){a.m.visible=false;return false}return true});
+const z=P.z<-16.5&&P.x>-24&&P.x<-16?'隱藏墓道':P.x<-8?'入口庭院':P.x<8?'陷阱通道':P.x<28?'符文廳':P.x<46?'墓室':'寶藏庫';if(z!=G.zone){G.zone=z;msg('進入：'+z,'var(--am)')}
+if(diff=='hard')G.obj=null;else if(G.tabN<G.n)G.obj=R.ia.find(o=>o.k=='tab'&&!o.done&&o.i<G.n);else if(!G.gate)G.obj={x:17,z:0};else if(!G.gem)G.obj=G.secret?R.gem:R.statue;else if(!G.vault)G.obj={x:38,z:0};else G.obj={x:58,z:0};
+if(tg){pr='按住互動：'+tg.label;if(use&&!G.held){G.s+=dt;pg=G.s/.8;if(G.s>=.8){G.s=0;G.held=true;tg.act(tg)}}else if(!use){G.held=false;G.s=0}}else{G.s=0;if(!use)G.held=false};
+if(G.vault&&Math.hypot(P.x-58,P.z)<2.2){end(true,'成功離開遺跡');return['',0]}
+return[pr,pg]}
+function ruinOb(){const L=(ok,t)=>(ok?'✓ ':'□ ')+t,ez=diff!='hard';return '<b style="color:var(--bl)">探險目標</b><br>'+L(G.tabN>=G.n,'找到石板 '+G.tabN+'/'+G.n)+'<br>'+L(G.gate,'踏對符文，開啟石門')+'<br>'+L(G.gem,'取得古代寶石'+(ez&&!G.gem?'（庭院有可疑石像）':''))+'<br>'+L(G.vault,'在祭壇獻上寶石')+'<br>□ 前往出口<br><b style="color:var(--am)">寶物</b> '+G.tr+'/6'}
+/* ---------- 世界 2：地下研究所 ---------- */
+const LBG=new T.Group();LBG.visible=false;sc.add(LBG);const LCOL=[],LWALLS=[];
+WG[1]={col:LCOL,walls:LWALLS,bg:0x070b0e,fn:9,ff:48,b:[-33.5,55.5,-22.5,14.5],hc:0x8fd8ff,hg:0x10181c,hi:.3,dc:0x7fb8d0,di:.25};
+const steelT=cvs(128,128,x=>{x.fillStyle='#2d373d';x.fillRect(0,0,128,128);x.strokeStyle='#1a2226';x.lineWidth=3;x.strokeRect(0,0,128,128);x.fillStyle='#4a5a62';[[10,10],[118,10],[10,118],[118,118]].forEach(a=>x.fillRect(a[0]-3,a[1]-3,6,6));x.fillStyle='#2fc7e8';x.fillRect(0,60,128,3)});
+const tileT=cvs(64,64,x=>{x.fillStyle='#1c2428';x.fillRect(0,0,64,64);x.strokeStyle='#2c383d';x.lineWidth=2;x.strokeRect(0,0,64,64)});
+const LMC={},lm=(l,h)=>{const a=Math.max(1,Math.round(l/3)),b=Math.max(1,Math.round(h/3)),k=a+'|'+b;if(LMC[k])return LMC[k];const t=steelT.clone();t.needsUpdate=true;t.repeat.set(a,b);return LMC[k]=new T.MeshLambertMaterial({map:t})};
+function lrb(x,z,w,d,h,mt,solid=true){const m=new T.Mesh(new T.BoxGeometry(w,h,d),mt||lm(Math.max(w,d),h));m.position.set(x,h/2,z);LBG.add(m);m.updateMatrixWorld();let col=null;if(solid){col={x0:x-w/2,x1:x+w/2,z0:z-d/2,z1:z+d/2};LCOL.push(col);LWALLS.push(m)}return{m,col,y:m.position.y}}
+const stripM=new T.MeshBasicMaterial({color:0x113b44});
+function lfp(x,z,w,d){const t=tileT.clone();t.needsUpdate=true;t.repeat.set(w/3,d/3);const m=new T.Mesh(new T.PlaneGeometry(w,d),new T.MeshLambertMaterial({map:t}));m.rotation.x=-Math.PI/2;m.position.set(x,0,z);LBG.add(m);const c=new T.Mesh(new T.PlaneGeometry(w,d),new T.MeshLambertMaterial({color:0x151c20}));c.rotation.x=Math.PI/2;c.position.set(x,4.6,z);LBG.add(c);[-.25,.25].forEach(o=>{const s=new T.Mesh(new T.BoxGeometry(w*.7,.05,.3),stripM);s.position.set(x,4.55,z+d*o);LBG.add(s)})}
+lfp(-21,0,22,24);lfp(0,0,20,20);lfp(22,0,24,28);lfp(44,0,20,24);lfp(22,-18,8,8);
+const LDM=new T.MeshLambertMaterial({color:0x37444a,emissive:0x3a2200}),GLM=new T.MeshLambertMaterial({color:0x0a4a5a,emissive:0x0a4a5a,transparent:true,opacity:.75});
+// 設備區
+lrb(-32,0,1,25,4.5);lrb(-21,-12,23,1,4.5);lrb(-21,12,23,1,4.5);lrb(-10,-7,1,10,4.5);lrb(-10,7,1,10,4.5);const DA=lrb(-10,0,1,4,4,LDM);
+// 控制室
+lrb(0,-10,21,1,4.5);lrb(0,10,21,1,4.5);lrb(10,-6,1,8,4.5);lrb(10,6,1,8,4.5);const DC=lrb(10,0,1,4,4,LDM);
+// 實驗室（北牆含隱藏通風口）
+lrb(14.75,-14,10.5,1,4.5);lrb(29.25,-14,10.5,1,4.5);const HP=lrb(22,-14,4,1,4.5,LDM);lrb(22,14,25,1,4.5);lrb(34,-8,1,12,4.5);lrb(10,-12,1,4,4.5);lrb(10,12,1,4,4.5);lrb(34,8,1,12,4.5);const DD=lrb(34,0,1,4,4,LDM);
+lrb(18,-18,1,8,4);lrb(26,-18,1,8,4);lrb(22,-22,9,1,4);
+// 核心區
+lrb(44,-12,21,1,4.5);lrb(44,12,21,1,4.5);lrb(54,0,1,25,4.5);
+// 擺設
+[[-26,-4,2,1.6,1.4],[-26,4,2,1.6,1.4],[-18,0,1.4,3,1.4],[-14,8,2,1.4,1.4],[-24,9.5,2,1.2,.9],[-14,-9.5,2,1.2,.9],[-6,-9,1.2,2,2.4],[-3,-9,1.2,2,2.4],[6,-9,1.2,2,2.4],[-6,6,2.4,1.2,1],[4,5,2.4,1.2,1],[14,-4,3,1.2,1],[14,4,3,1.2,1],[22,-6,3,1.2,1],[22,6,3,1.2,1],[30,5,3,1.2,1]].forEach(a=>lrb(a[0],a[1],a[2],a[3],a[4]));
+[[30,-3],[30,-6.5],[12,-11],[12,11]].forEach(a=>lrb(a[0],a[1],1.2,1.2,2.4,GLM));
+lrb(-31,-9,1,2,2.2);const pbG=new T.Mesh(new T.BoxGeometry(.04,.8,.9),new T.MeshBasicMaterial({color:0xffa726}));pbG.position.set(-30.45,1.2,-9);LBG.add(pbG);
+lrb(0,-9.2,1.4,.7,1.2);const stScr=new T.Mesh(new T.PlaneGeometry(.9,.4),new T.MeshBasicMaterial({color:0x4fc3ff}));stScr.position.set(0,1,-8.83);LBG.add(stScr);
+lrb(32.6,-3.6,.6,1.2,1.3);const ktScr=new T.Mesh(new T.PlaneGeometry(.4,.5),new T.MeshBasicMaterial({color:0xffa726}));ktScr.position.set(32.28,1.0,-3.6);ktScr.rotation.y=-Math.PI/2;LBG.add(ktScr);
+lrb(46,0,2.4,1.2,1.2);const ctG=new T.Mesh(new T.BoxGeometry(1.6,.1,.6),new T.MeshBasicMaterial({color:0x6bff8a}));ctG.position.set(46,1.25,0);LBG.add(ctG);
+const lmk=(x,y,z,c,s)=>{const m=new T.Mesh(new T.BoxGeometry(s,s*.6,s),new T.MeshBasicMaterial({color:c}));m.position.set(x,y,z);LBG.add(m);return m};
+const fuses=[[-24,9.5],[-14,-9.5]].map(([x,z])=>lmk(x,1.0,z,0x4fc3ff,.3)),card=lmk(-6,1.1,6,0xffa726,.35),notePos=[[-1,-8.2],[14,10],[30,-10]],noteM=notePos.map(([x,z])=>{lrb(x,z,.7,.7,.9);return lmk(x,1.0,z,0xf0f0d0,.3)}),
+disk=lmk(22,.9,-20.5,0x6bff8a,.35),medL=lmk(24,.4,-17,0xe6e6e6,.4);lrb(22,-20.5,.7,.7,.7);
+const lasers=[18,26].map((x,i)=>{const g=new T.Group();[.35,.9,1.45,2.0].forEach(y=>{const b=new T.Mesh(new T.BoxGeometry(.06,.06,27),new T.MeshBasicMaterial({color:0xff2a2a}));b.position.set(x,y,0);g.add(b)});LBG.add(g);return{g,x}});
+const LEX=new T.Group();{const r=new T.Mesh(new T.RingGeometry(2,2.4,32),new T.MeshBasicMaterial({color:0x6bff8a,side:T.DoubleSide}));r.rotation.x=-Math.PI/2;r.position.y=.06;const b=new T.Mesh(new T.CylinderGeometry(2.3,2.3,4.4,20,1,true),new T.MeshBasicMaterial({color:0x6bff8a,transparent:true,opacity:.15,side:T.DoubleSide}));b.position.y=2.2;LEX.add(r,b);LEX.position.set(51,0,0);LEX.visible=false;LBG.add(LEX)}
+const llights=[[-20,3.5,0],[0,3.5,0],[22,3.5,0],[44,3.5,0]].map(([x,y,z])=>{const l=new T.PointLight(0x7fd8ff,.1,22);l.position.set(x,y,z);LBG.add(l);return l});
+const LB={ia:[],lasers,lights:llights};
+const LA=(x,z,k,label,act,av,extra)=>{const o=Object.assign({x,z,k,label,act,av,done:false},extra);LB.ia.push(o);return o};
+const alarmAll=()=>E.forEach(e=>{if(!e.dead){e.state='alert';e.alertT=10;e.last={x:P.x,z:P.z};e.cd=.8}});
+const spawnE=(x,z)=>{const e=mkE(x,z,DIFF[diff]);E.push(e);e.parts.forEach(p=>EP.push(p));e.state='alert';e.alertT=12;e.last={x:P.x,z:P.z};e.cd=1;return e};
+const ridl=d=>{if(diff=='easy'){if(d==1)return'9−8';const a=1+rnd(d-1);return a+'＋'+(d-a)}if(diff=='normal'){const k=2+rnd(4);return(d+k)+'−'+k}const f=[2,3,4,5,6,7,8].filter(a=>d%a==0&&a<d);if(f.length&&Math.random()<.6){const a=f[rnd(f.length)];return a+'×'+(d/a)}const k=3+rnd(5);return(d+k)+'−'+k};
+fuses.forEach((m,i)=>LA(m.position.x,m.position.z,'fuse','取得保險絲',o=>{o.done=true;m.visible=false;G.fuse++;sfx('pick');msg('取得保險絲 '+G.fuse+'／2','var(--bl)')}));
+LA(-30,-9,'pb','配電箱',o=>{if(G.fuse<2){msg('配電箱缺少保險絲（已取得 '+G.fuse+'／2）');sfx('click');return}o.done=true;G.power=true;pbG.material.color.setHex(0x6bff8a);openSolid(DA);sfx('ok');msg('電力恢復！設備區的電子門開啟了。','var(--ol)')});
+LA(-6,6,'card','取得通行證',o=>{o.done=true;card.visible=false;G.card=true;sfx('pick');msg('取得 L2 通行證，可開啟實驗室的門。','var(--am)')},()=>G.power);
+LA(8.6,0,'rd','使用讀卡機',o=>{if(!G.card){msg('讀卡機：需要 L2 通行證。');sfx('click');return}o.done=true;G.dc=true;openSolid(DC);sfx('ok');msg('通行證通過，實驗室的門開啟。','var(--ol)')});
+LA(0,-8.4,'st','關閉雷射防護',o=>{if(!G.power){msg('終端機沒有電力。');return}o.done=true;G.lasersOff=true;sfx('ok');msg('雷射防護網已關閉。','var(--ol)')},null,{hold:1.5});
+notePos.forEach(([x,z],i)=>LA(x,z,'note','閱讀研究筆記',o=>{o.done=true;noteM[i].visible=false;G.notes++;G.clues[i]='✓';G.rid[i]=ridl(G.code[i]);sfx('pick');msg('研究筆記：閘門密碼第 '+(i+1)+' 碼＝ '+G.rid[i],'var(--am)')},null,{i}));
+LA(22,-12.4,'vent','檢查標本櫃',o=>{if(G.notes<3){msg('櫃子後面似乎有氣流，但你還沒掌握足夠的研究資料。');sfx('click');return}o.done=true;G.hidOpen=true;openSolid(HP);sfx('ok');msg('筆記提到的暗門打開了！','var(--am)')});
+LA(22,-20.5,'disk','取得研究資料碟',o=>{o.done=true;disk.visible=false;G.hid=true;G.val+=800;collect('lb_disk');sfx('ok');msg('取得隱藏的研究資料碟（價值 800）','var(--am)')},()=>G.hidOpen);
+LA(24,-17,'med','取用急救包',o=>{o.done=true;medL.visible=false;P.hp=Math.min(P.mx,P.hp+40);sfx('ok');msg('生命 +40','var(--ol)')},()=>G.hidOpen);
+LA(32.6,-3.6,'kp','輸入閘門密碼',o=>{if(G.dd)return;if(G.notes<3)msg('已讀 '+G.notes+'／3 份筆記，還缺線索。');openKp()},()=>!G.dd);
+LA(46,0,'ct','下載核心研究資料',o=>{o.done=true;G.dl=true;LEX.visible=true;alarmAll();[[37,-6],[37,6],[40,0],[42,9]].slice(0,diff=='hard'?4:diff=='normal'?3:2).forEach(a=>spawnE(a[0],a[1]));sfx('bad');msg('資料下載完成！警報響起，守衛增援——前往撤離點！','var(--rd)')},()=>G.dd,{hold:4});
+function nearL(){let b=null,bd=2.7;const fx=-Math.sin(P.yaw),fz=-Math.cos(P.yaw);for(const o of LB.ia){if(o.done||(o.av&&!o.av()))continue;const dx=o.x-P.x,dz=o.z-P.z,d=Math.hypot(dx,dz);if(d<bd&&(dx*fx+dz*fz)/(d||1)>.35){bd=d;b=o}}return b}
+function animStep(dt){RU.anim=RU.anim.filter(o=>{o.m.position.y-=dt*2.5;if(o.m.position.y<=o.y-5.6){o.m.visible=false;return false}return true})}
+function labStep(dt,tg){let pr='',pg=0;G.inv=Math.max(0,G.inv-dt);
+LB.lasers.forEach((l,i)=>{const on=!G.lasersOff&&((G.el/2.4+i*.5)%1)<.5;l.g.visible=on;if(on&&!G.inv&&Math.abs(P.x-l.x)<.5&&P.x>0){G.inv=1.2;G.lz++;sfx('bad');msg('觸動雷射警報！守衛被驚動（-12）。控制室終端機可關閉雷射。','var(--rd)');hurt(12);alarmAll()}});
+LB.lights.forEach((l,i)=>{l.intensity=G.power?.9+Math.sin(G.el*5+i)*.05:(i==0?.5:.1)});hl.intensity=G.power?.85:.3;stripM.color.setHex(G.power?0x2fc7e8:0x113b44);animStep(dt);
+const z=P.z<-14.5&&P.x>18&&P.x<26?'隱藏實驗室':P.x<-10?'設備區':P.x<10?'控制室':P.x<34?'實驗室':'核心區';if(z!=G.zone){G.zone=z;msg('進入：'+z,'var(--am)')}
+if(diff=='hard')G.obj=null;else if(G.fuse<2)G.obj=LB.ia.find(o=>o.k=='fuse'&&!o.done);else if(!G.power)G.obj={x:-30,z:-9};else if(!G.card)G.obj={x:-6,z:6};else if(!G.dc)G.obj={x:8.6,z:0};else if(G.notes<3)G.obj=LB.ia.find(o=>o.k=='note'&&!o.done);else if(!G.dd)G.obj={x:32.6,z:-3.6};else if(!G.dl)G.obj={x:46,z:0};else G.obj={x:51,z:0};
+if(tg){const hd=tg.hold||.8;pr='按住互動：'+tg.label;if(use&&!G.held){G.s+=dt;pg=G.s/hd;if(G.s>=hd){G.s=0;G.held=true;tg.act(tg)}}else if(!use){G.held=false;G.s=0}}else{G.s=0;if(!use)G.held=false};
+if(G.dl&&Math.hypot(P.x-51,P.z)<2.2){G.ext+=dt;pr='撤離中…請留在撤離點';pg=G.ext/2.5;if(G.ext>=2.5){end(true,'成功帶出研究資料');return['',0]}}else G.ext=0;
+return[pr,pg]}
+function labOb(){const L=(ok,t)=>(ok?'✓ ':'□ ')+t,ez=diff!='hard';return '<b style="color:var(--bl)">任務目標</b><br>'+L(G.power,'保險絲 '+G.fuse+'/2，恢復電力')+'<br>'+L(G.dc,'取得通行證，開啟實驗室')+'<br>'+L(G.notes>=3,'研究筆記 '+G.notes+'/3')+'<br>'+L(G.dd,'輸入核心閘門密碼')+'<br>'+L(false,'下載資料並撤離')+'<br><b style="color:var(--am)">密碼算式</b> '+G.rid.map((r,i)=>(i+1)+':'+(r||'？')).join(' ')+(ez&&G.notes>=3&&!G.hidOpen?'<br><span class="mu">實驗室裡有可疑的標本櫃</span>':'')}
+function resetLab(){const D=DIFF[diff];CH=CHARS[SV.sel.c];WP=WEAPONS[SV.sel.w];OI=selOI();TPS=!!SV.sel.v;
+P={x:-30.5,z:0,yaw:-Math.PI/2,pitch:0,hp:CH.hp,mx:CH.hp,med:1};W={mag:WP.mag,mx:WP.mag,res:Math.round(D.ammo*WP.rs*CH.am),cd:0,rl:0,shots:0,hits:0,heat:0,ads:0,kick:0};
+G={hu:0,at:0,fr:1,t:D.time*1.2,el:0,kills:0,val:0,clues:[null,null,null],items:[],door:false,fails:0,ext:0,s:0,code:[1+rnd(9),1+rnd(9),1+rnd(9)],rid:['','',''],notes:0,fuse:0,power:false,card:false,dc:false,lasersOff:false,dd:false,dl:false,hid:false,hidOpen:false,lz:0,inv:0,zone:'',obj:null,kpMsg:'核心閘門開啟！',kpHint:'輸入 3 位密碼：每一碼都是研究筆記上算式的答案。'};
+G.onCode=()=>{G.dd=true;openSolid(DD)};
+E.forEach(e=>sc.remove(e.g));const hs=[[-24,5],[-18,-4],[-2,3],[5,-3],[16,0],[28,6],[28,-6],[0,-6]],ix=diff=='hard'?[0,1,2,3,4,5,6]:diff=='normal'?[0,2,3,4,5]:[0,2,4];
+E=ix.map(i=>mkE(hs[i][0],hs[i][1],D));EP=[].concat(...E.map(e=>e.parts));
+[DA,DC,DD,HP].forEach(o=>{o.m.position.y=o.y;o.m.visible=true;if(!LWALLS.includes(o.m))LWALLS.push(o.m);if(!WALLS.includes(o.m)){WALLS.push(o.m);COL.push(o.col)}});RU.anim=[];LB.ia.forEach(o=>o.done=false);
+fuses.forEach(m=>m.visible=true);noteM.forEach(m=>m.visible=true);card.visible=true;disk.visible=true;medL.visible=true;LEX.visible=false;pbG.material.color.setHex(0xffa726);
+cam.fov=75;cam.updateProjectionMatrix();buildLoadout()}
+/* ===== 新世界共用框架 ===== */
+let MS=null;
+const IMPL=new Set(['0:extract','1:extract','2:explore','3:extract','3:mystery','4:explore','4:treasure']);
+function mkW(id,o){const g=new T.Group();g.visible=false;sc.add(g);const col=[],walls=[];WG[id]=Object.assign({col,walls,grp:g},o);
+return{g,col,walls,
+rb(x,z,w,d,h,mt,solid=true,y0=0){const m=new T.Mesh(new T.BoxGeometry(w,h,d),mt||mat(0x666666));m.position.set(x,y0+h/2,z);g.add(m);m.updateMatrixWorld();let c=null;if(solid){c={x0:x-w/2,x1:x+w/2,z0:z-d/2,z1:z+d/2};col.push(c);walls.push(m)}return{m,col:c,y:m.position.y}},
+fp(x,z,w,d,tex,ceil,rep){const t=tex.clone();t.needsUpdate=true;t.repeat.set(w/(rep||4),d/(rep||4));const m=new T.Mesh(new T.PlaneGeometry(w,d),new T.MeshLambertMaterial({map:t}));m.rotation.x=-Math.PI/2;m.position.set(x,0,z);g.add(m);if(ceil){const c=new T.Mesh(new T.PlaneGeometry(w,d),new T.MeshLambertMaterial({color:0x1a1f24}));c.rotation.x=Math.PI/2;c.position.set(x,ceil,z);g.add(c)}},
+dec(x,y,z,w,h,d,c,em){const m=new T.Mesh(new T.BoxGeometry(w,h,d),em?new T.MeshBasicMaterial({color:c}):mat(c));m.position.set(x,y,z);g.add(m);return m}}}
+const TMC={},tm=(tex,key,l,h)=>{const a=Math.max(1,Math.round(l/3)),b=Math.max(1,Math.round(h/3)),id=key+a+'|'+b;if(TMC[id])return TMC[id];const t=tex.clone();t.needsUpdate=true;t.repeat.set(a,b);return TMC[id]=new T.MeshLambertMaterial({map:t})};
+const nearIn=list=>{let b=null,bd=2.7;const fx=-Math.sin(P.yaw),fz=-Math.cos(P.yaw);for(const o of list){if(o.done||(o.av&&!o.av()))continue;const dx=o.x-P.x,dz=o.z-P.z,d=Math.hypot(dx,dz);if(d<bd&&(dx*fx+dz*fz)/(d||1)>.35){bd=d;b=o}}return b};
+const doHold=(tg,dt)=>{let pr='',pg=0;if(tg){const hd=tg.hold||.8;pr='按住互動：'+tg.label;if(use&&!G.held){G.s+=dt;pg=G.s/hd;if(G.s>=hd){G.s=0;G.held=true;tg.act(tg)}}else if(!use){G.held=false;G.s=0}}else{G.s=0;if(!use)G.held=false};return[pr,pg]};
+const tp=(x,z,yaw)=>{P.x=x;P.z=z;P.yaw=yaw;P.pitch=0;sfx('click')};
+function baseReset(sx,sz,yaw,tmul){const D=DIFF[diff];CH=CHARS[SV.sel.c];WP=WEAPONS[SV.sel.w];OI=selOI();TPS=!!SV.sel.v;P={x:sx,z:sz,yaw,pitch:0,hp:CH.hp,mx:CH.hp,med:1};W={mag:WP.mag,mx:WP.mag,res:Math.round(D.ammo*WP.rs*CH.am),cd:0,rl:0,shots:0,hits:0,heat:0,ads:0,kick:0};
+G={hu:0,at:0,fr:1,t:D.time*tmul,el:0,kills:0,val:0,clues:[null,null,null],items:[],door:false,fails:0,ext:0,s:0,inv:0,zone:'',obj:null,tries:0};E.forEach(e=>sc.remove(e.g));E=[];EP=[];RU.anim=[];cam.fov=75;cam.updateProjectionMatrix();return D}
+const spawnList=(D,l)=>{E=l.map(h=>mkE(h[0],h[1],D));EP=[].concat(...E.map(e=>e.parts))};
+const restore=l=>l.forEach(o=>{o.m.position.y=o.y;o.m.visible=true;if(!WALLS.includes(o.m)){WALLS.push(o.m);COL.push(o.col)}});
+const mkIA=list=>(x,z,k,label,act,av,ex)=>{const o=Object.assign({x,z,k,label,act,av,done:false},ex);list.push(o);return o};
+const pn=(a,l)=>a?'✓ '+l:'□ '+l;
+/* ===== 世界 4：都市危機 ===== */
+const asT=cvs(128,128,x=>{x.fillStyle='#1d2226';x.fillRect(0,0,128,128);x.fillStyle='rgba(255,255,255,.07)';for(let i=0;i<300;i++)x.fillRect(Math.random()*128,Math.random()*128,2,2);x.fillStyle='#8a7a30';x.fillRect(0,62,40,4);x.fillRect(64,62,40,4)});
+const cnT=cvs(128,128,x=>{x.fillStyle='#2b3239';x.fillRect(0,0,128,128);for(let r=0;r<4;r++)for(let c=0;c<4;c++){x.fillStyle=Math.random()<.45?'#d8c26a':'#141a20';x.fillRect(c*32+6,r*32+6,20,22)}});
+const rfT=cvs(64,64,x=>{x.fillStyle='#2a2d30';x.fillRect(0,0,64,64);x.strokeStyle='#3a3e42';x.strokeRect(0,0,64,64)});
+const CW=mkW(3,{bg:0x0b1020,fn:14,ff:62,b:[-39.5,25.5,-12.5,44.5],hc:0x6f8fc0,hg:0x1a2028,hi:.65,dc:0x9fb8e0,di:.35});
+const cr=(x,z,w,d,h,solid)=>CW.rb(x,z,w,d,h,tm(cnT,'c',Math.max(w,d),h),solid),cd=(x,z,w,d,h,c)=>CW.rb(x,z,w,d,h,mat(c||0x4a5560));
+CW.fp(-19,0,38,24,asT);CW.fp(11,0,22,24,tileT,4.5);CW.fp(12,27,24,14,rfT);CW.fp(-23,27,30,14,tileT,4.5);CW.fp(-24,39,10,10,tileT,4.5);
+cr(-38,0,1,25,6);cr(-19,-12.5,38,1,6);cr(-19,12.5,38,1,6);cr(0,-7,1,10,6);cr(0,7,1,10,6);
+const DL=CW.rb(0,0,1,4,3.6,new T.MeshLambertMaterial({color:0x37444a,emissive:0x2a1a00}));
+cr(11,-12.5,22,1,4.5);cr(11,12.5,22,1,4.5);cr(22,0,1,25,4.5);cr(8,-7,.8,10,4);cr(8,7,.8,10,4);
+cr(14,-8.5,.8,7,4);cr(15,-5,2,.8,4);cr(20,-5,4,.8,4);const DS=CW.rb(17,-5,2,.8,3.6,new T.MeshLambertMaterial({color:0x37444a,emissive:0x2a1a00}));
+// 屋頂欄杆
+cd(12,20,24,.8,1.2,0x3a4048);cd(12,34,24,.8,1.2,0x3a4048);cd(0,27,.8,14,1.2,0x3a4048);cd(24,27,.8,14,1.2,0x3a4048);
+// 地下通道
+cr(-23,20,30.8,1,4.5);cr(-32,34,12,1,4.5);const HPc=CW.rb(-24,34,4,1,4.5,new T.MeshLambertMaterial({color:0x4a4036,emissive:0x1a1000}));cr(-15,34,14,1,4.5);cr(-38,27,1,14,4.5);cr(-8,27,1,14,4.5);
+cr(-29,39,1,10,4);cr(-19,39,1,10,4);cr(-24,44,11,1,4);
+// 掩體與道具
+[[-28,-6,4.2,1.9,1.5],[-22,6,4.2,1.9,1.5],[-12,-5,1.9,4.2,1.5],[-33,9,1.8,1.2,1.3],[-30,-10.9,1,1,2.2],[-16,-10.6,2,1,1],[-4,-3,.6,3,1]].forEach(a=>cd(a[0],a[1],a[2],a[3],a[4],0x56606a));cd(-7,6,4.8,2.2,2.2,0x3a5a7a);
+[[11,-8,2.5,1.2,1],[11,8,2.5,1.2,1],[17,8,2.5,1.2,1],[17,2,2.5,1.2,1],[3,-9,3,1,1.1],[6,-9.2,1,1,1],[20.5,-10,1.2,2,2.4],[16.5,-10.5,1.2,1.4,1.4],[21,9,1.5,3,1.2],[3,11.8,3,.4,2],[8.5,0,.4,.4,.4]].forEach(a=>cd(a[0],a[1],a[2],a[3],a[4],0x4a5a62));
+[[8,24,3,2,1.6],[16,24,3,2,1.6],[6,31,2,2,1.4],[6,31.6,1.6,.8,1.1],[-20,32.8,2,1,1],[-33,22.6,2,1.2,1.2],[-30,27,1,1,4.5],[-18,27,1,1,4.5],[-24,42.6,1.6,.8,1.6]].forEach(a=>cd(a[0],a[1],a[2],a[3],a[4],0x4f5560));
+const hpad=new T.Mesh(new T.RingGeometry(2.6,3,36),new T.MeshBasicMaterial({color:0xffa726,side:T.DoubleSide}));hpad.rotation.x=-Math.PI/2;hpad.position.set(18,.06,29);CW.g.add(hpad);
+for(let i=0;i<14;i++){const h=8+(i*7)%14;CW.dec(-12+i*4.5,h/2,40+(i%3)*5,3.5,h,3.5,0x202a38);CW.dec(-12+i*4.5,h*.6,38+(i%3)*5,3,.4,.1,0xd8c26a,1)}
+[[-25,4,0],[-8,4,0],[12,3.5,0],[-23,3.5,27],[17,5,29]].forEach(([x,y,z])=>{const l=new T.PointLight(0xffd9a0,.8,22);l.position.set(x,y,z);CW.g.add(l)});
+const EVT=['門禁紀錄：22:40，伺服器室被「陳」的門禁卡開啟。','遺失通報：會計陳在 21:50 通報門禁卡遺失。','值班表：保全主管林在 22:35–22:50 的巡邏欄位是空白。','屋頂監視：22:45 有人穿保全制服、帶著硬碟盒走向屋頂。','清潔單：清潔員黃 22:00–23:00 都在地下停車場，電梯紀錄吻合。','林的置物櫃：藏有陳遺失的門禁卡與一個空硬碟盒。'],EVN=['伺服器室門禁','遺失通報','值班表','屋頂監視','清潔單','林的置物櫃'];
+function cityMission(mode){const ia=[],A=mkIA(ia),X=mode=='mystery';
+A(-18,0,'mh','下去地下通道',o=>{tp(-34,26,-Math.PI/2);msg('進入：地下通道','var(--am)')});
+A(-36.5,27,'lu','爬回街道',o=>{tp(-18,2.6,0)});
+A(-7,3.8,'van','搜查廂型車',o=>{o.done=true;G.card=true;sfx('pick');msg('在廂型車裡找到門禁卡！可以開啟大樓大門。','var(--am)')});
+A(-1.5,0,'rd','刷門禁卡',o=>{if(!G.card){msg('讀卡機：需要門禁卡。附近停著一輛可疑的廂型車。');sfx('click');return}o.done=true;G.dl=true;openSolid(DL);sfx('ok');msg('大門開啟。','var(--ol)')});
+A(20,7.4,'su','走樓梯上屋頂',o=>{tp(3,23.2,Math.PI);msg('進入：屋頂','var(--am)')});
+A(3,21.4,'sd','走樓梯下樓',o=>{tp(19.4,6.6,0)});
+A(-24,33.2,'gf','檢查可疑的塗鴉牆',o=>{o.done=true;G.hidOpen=true;openSolid(HPc);sfx('ok');msg('牆面是暗門！通往隱藏的情報室。','var(--am)')},null,{hold:1});
+const nP=[[-16,-9.6],[6,-8.2],[17,6.6]];
+nP.forEach(([x,z],i)=>A(x,z,'note','閱讀便條紙',o=>{o.done=true;G.notes++;G.clues[i]='✓';G.rid[i]=ridl(G.code[i]);sfx('pick');msg('便條：伺服器室密碼第 '+(i+1)+' 碼＝ '+G.rid[i],'var(--am)')},()=>i==0||G.dl,{i}));
+A(15.2,-4.2,'kp','輸入伺服器室密碼',o=>{if(G.ds)return;if(G.notes<3)msg('已讀 '+G.notes+'／3 張便條，還缺線索。');openKp()},()=>G.dl&&!G.ds);
+A(17,-6.7,'exitbtn','按下開門按鈕',o=>{o.done=true;G.ds=true;openSolid(DS);sfx('ok');msg('從內側開啟了伺服器室的門。','var(--ol)')},()=>!G.ds&&(G.viaHatch||G.dl));
+A(-30,21.4,'cut','取得斷線鉗',o=>{o.done=true;G.cutter=true;sfx('pick');msg('取得斷線鉗！通道盡頭的維修梯被鐵鍊鎖住。','var(--am)')});
+A(-9.6,27,'hatch','維修梯（通往伺服器室）',o=>{if(!G.cutter){msg('維修梯被鐵鍊鎖住了，需要工具。');sfx('click');return}G.viaHatch=true;tp(19.2,-9.2,Math.PI);msg('爬上維修梯，進入伺服器室（避開了大門與密碼）。','var(--ol)')});
+if(!X){A(20.5,-8.4,'disk','下載機密資料',o=>{o.done=true;G.disk=true;G.alarm=true;alarmAll();[[10,0],[10,6],[16,2]].slice(0,diff=='hard'?3:diff=='normal'?2:1).forEach(a=>spawnE(a[0],a[1]));hpad.visible=true;sfx('bad');msg('資料到手，警報響起！前往屋頂直升機坪撤離。','var(--rd)')},()=>G.ds||G.viaHatch,{hold:3});
+A(-24,42.2,'intel','取得隱藏情報',o=>{o.done=true;G.hid=true;G.val+=600;collect('ct_intel');sfx('ok');msg('取得隱藏的情報文件（價值 600）','var(--am)')},()=>G.hidOpen)}
+else{const ev=(i,x,z,av,ex)=>A(x,z,'ev','調查：'+EVN[i],o=>{o.done=true;G.ev[i]=true;sfx('pick');msg('證據 '+(i+1)+'／6：'+EVT[i],'var(--am)')},av,Object.assign({i},ex));
+ev(0,16.4,-9.6,()=>G.ds||G.viaHatch);ev(1,-30,-9.6);ev(2,3,-7.6,()=>G.dl);ev(3,6,30.4);ev(4,-20,31.4);ev(5,-24,42.2,()=>G.hidOpen);
+A(3,10,'cb','查看案情板',o=>{const n=G.ev.filter(x=>x).length;if(n<3){msg('證據還太少（'+n+'／6）。去街道、大樓、屋頂與地下通道調查。');sfx('click');return}openCase()},()=>G.dl)}
+const M={ia,near:()=>nearIn(ia),hud:()=>'',
+reset(){const D=baseReset(-34,0,-Math.PI/2,X?1.5:1.3);Object.assign(G,{code:[1+rnd(9),1+rnd(9),1+rnd(9)],rid:['','',''],notes:0,card:false,dl:false,ds:false,cutter:false,viaHatch:false,hid:false,hidOpen:false,disk:false,alarm:false,ev:[0,0,0,0,0,0].map(()=>false),kpMsg:'伺服器室的門開啟了。',kpHint:'輸入 3 位密碼：每一碼是便條紙上算式的答案。'});G.onCode=()=>{G.ds=true;openSolid(DS)};
+restore([DL,DS,HPc]);ia.forEach(o=>o.done=false);hpad.visible=!X;
+const hs=X?[[-24,0],[4,3],[14,0]].slice(0,diff=='easy'?1:diff=='normal'?2:3):[[-24,0],[4,3],[14,0],[-10,-3],[-28,27],[12,-2]].slice(0,diff=='easy'?3:diff=='normal'?5:6);spawnList(D,hs);buildLoadout()},
+step(dt,tg){G.inv=Math.max(0,G.inv-dt);animStep(dt);const z=P.z>34.5?'隱藏情報室':P.z>19&&P.x<0?'地下通道':P.z>19?'屋頂':P.x<0?'城市街道':'商業大樓';if(z!=G.zone){G.zone=z;msg('進入：'+z,'var(--am)')}
+const st=(a,b)=>diff=='hard'?null:{x:a,z:b};
+if(!X){G.obj=!(G.ds||G.viaHatch)?(G.dl||G.cutter?st(17,-4):G.card?st(-1.5,0):st(-7,6)):!G.disk?st(20.5,-8.4):st(18,29)}else{const nx=ia.find(o=>o.k=='ev'&&!o.done&&(!o.av||o.av()));G.obj=diff=='hard'?null:(G.ev.filter(x=>x).length>=3&&G.dl?{x:3,z:10}:nx)}
+const r=doHold(tg,dt);
+if(!X&&G.disk&&Math.hypot(P.x-18,P.z-29)<3){G.ext+=dt;r[0]='撤離中…等待直升機';r[1]=G.ext/3;if(G.ext>=3){end(true,'成功撤離');return['',0]}}else G.ext=0;
+return r},
+ob(){const e=diff!='hard';if(X){const n=G.ev.filter(x=>x).length;return '<b style="color:var(--bl)">案件調查</b><br>'+G.ev.map((v,i)=>(v?'✓ ':'□ ')+(v?EVN[i]:'？？？')).join('<br>')+'<br><span class="mu">'+(n>=3?'可到大樓大廳的案情板分析':e?'分別調查街道、大樓、屋頂、地下通道':'')+'</span>'}
+return '<b style="color:var(--bl)">任務目標</b><br>'+pn(G.ds||G.viaHatch,'進入伺服器室'+(e?'（密碼或維修梯）':''))+'<br>'+pn(G.disk,'下載機密資料')+'<br>□ 屋頂直升機坪撤離<br><b style="color:var(--am)">密碼算式</b> '+G.rid.map((r,i)=>(i+1)+':'+(r||'？')).join(' ')},
+stars(){return X?1+(G.tries<=1?1:0)+(G.ev.every(x=>x)?1:0):1+(G.hid?1:0)+(P.hp>=P.mx*.5?1:0)},
+sum(){return X?'證據 '+G.ev.filter(x=>x).length+'／6，推理 '+G.tries+' 次':'擊倒 '+G.kills+'，隱藏情報 '+(G.hid?'已取得':'未發現')}};
+return M}
+function caseGuess(s){G.tries++;const c=[2,3,5].filter(i=>G.ev[i]).length;
+if(s==0){if(c>=2){sfx('ok');$('cs').classList.remove('on');state='play';end(true,'真相大白：內鬼是保全主管林');return true}$('cm').textContent='方向或許是對的，但佐證不足（目前 '+c+'／3 項能指向他的證據）。再找找值班、屋頂或置物櫃的線索。'}
+else if(s==1)$('cm').textContent=G.ev[1]?'不對。遺失通報顯示陳的卡片 21:50 就不見了，22:40 刷卡的人不是他本人。':'陳的卡片確實被使用，但你還沒查清那張卡當時在不在他手上。';
+else $('cm').textContent=G.ev[4]?'不對。清潔單與電梯紀錄證明黃整晚在地下停車場。':'黃有機會嗎？你還缺能證明他當時行蹤的證據。';sfx('bad');return false}
+function openCase(){state='kp';fh=ah=use=0;if(document.pointerLockElement)document.exitPointerLock();$('ct').textContent='案情分析';$('cq').textContent='你認為內鬼是誰？';$('cm').textContent='';$('cf').innerHTML=G.ev.map((v,i)=>v?'<div>• '+EVT[i]+'</div>':'').join('');
+$('cb').innerHTML='';['林（保全主管）','陳（會計）','黃（清潔員）'].forEach((n,s)=>{const b=document.createElement('button');b.className='b';b.textContent='是 '+n;b.onclick=()=>caseGuess(s);$('cb').appendChild(b)});$('cs').classList.add('on')}
+$('cx').onclick=()=>{$('cs').classList.remove('on');if(state=='kp'){state='play';if(!TOUCH)cv.requestPointerLock()}};
+/* ===== 世界 5：神秘荒野 ===== */
+const grT=cvs(128,128,x=>{x.fillStyle='#2f4a2b';x.fillRect(0,0,128,128);for(let i=0;i<700;i++){x.fillStyle='rgba('+(Math.random()<.5?'20,50,20':'110,150,70')+',.25)';x.fillRect(Math.random()*128,Math.random()*128,2,3)}});
+const rkT=cvs(128,128,x=>{x.fillStyle='#5b5a55';x.fillRect(0,0,128,128);for(let i=0;i<260;i++){x.fillStyle='rgba(0,0,0,'+Math.random()*.25+')';x.fillRect(Math.random()*128,Math.random()*128,10,4)}});
+const WW=mkW(4,{bg:0x1b2b26,fn:12,ff:52,b:[-39.5,61.5,-23.5,23.5],hc:0xbfe0b0,hg:0x233023,hi:.8,dc:0xffe0a0,di:.55});
+const rk=(x,z,w,d,h)=>WW.rb(x,z,w,d,h,tm(rkT,'r',Math.max(w,d),h)),wd=(x,z,w,d,h,c)=>WW.rb(x,z,w,d,h,mat(c));
+WW.fp(-11,0,54,45,grT);WW.fp(25,0,18,45,grT);WW.fp(43,0,18,21,rkT,4.8);WW.fp(57,0,10,17,rkT,4.8);
+rk(-2,-23,73,1,6);rk(-2,23,73,1,6);rk(-39,0,1,46,6);rk(34,-13,1,20,6);rk(34,13,1,20,6);rk(43,-10.5,19,1,5);rk(43,10.5,19,1,5);rk(52,-6.5,1,7,5);rk(52,6.5,1,7,5);const GR=rk(52,0,1,6,4.5);rk(57,-8.5,11,1,5);rk(57,8.5,11,1,5);rk(62,0,1,17,5);
+const wat=new T.Mesh(new T.PlaneGeometry(4,45),new T.MeshBasicMaterial({color:0x2a6fa0,transparent:true,opacity:.8}));wat.rotation.x=-Math.PI/2;wat.position.set(26,.12,0);WW.g.add(wat);
+WW.rb(26,-12.75,4,19.5,.6,mat(0x1d4a6a));WW.rb(26,12.75,4,19.5,.6,mat(0x1d4a6a));const BR=WW.rb(26,0,4,6,.6,mat(0x6b4a2a));
+const deck=new T.Mesh(new T.BoxGeometry(4.4,.25,5.6),new T.MeshLambertMaterial({color:0x8a6a3a}));deck.position.set(26,.5,0);deck.visible=false;WW.g.add(deck);
+// 樹林（固定亂數，保證每次地形相同）
+let sd=7;const rn=()=>(sd=(sd*16807)%2147483647)/2147483647,trk=new T.CylinderGeometry(.28,.34,2.4,6),crn=new T.ConeGeometry(1.5,3.6,7),trM=mat(0x5a3d22),crM=mat(0x2c5a2a),treeP=[];
+const CLR=[[-36,0,3.5],[-22,8,3],[-12,-10,3],[-20,-16,3],[-24,10,3],[-9,6,3],[15,12,3],[8,3,3],[-1,-5,3],[14,-4,3]],okTree=(x,z)=>{if(Math.abs(z)<2.8&&x<-4)return false;if(x>-5&&x<16.5&&Math.abs(z)<10.5)return false;for(const c of CLR)if(Math.hypot(x-c[0],z-c[1])<c[2])return false;for(const t of treeP)if(Math.hypot(x-t[0],z-t[1])<2.4)return false;return true};
+for(let i=0,n=0;n<80&&i<900;i++){const x=-37+rn()*52,z=-21+rn()*42;if(!okTree(x,z))continue;n++;treeP.push([x,z]);const a=new T.Mesh(trk,trM);a.position.set(x,1.2,z);WW.g.add(a);const b=new T.Mesh(crn,crM);b.position.set(x,4.1,z);WW.g.add(b);WW.col.push({x0:x-.4,x1:x+.4,z0:z-.4,z1:z+.4});WW.walls.push(a);a.updateMatrixWorld()}
+// 營地、山谷、洞穴、遺跡
+wd(2,-6,3,3,2,0x6a5a3a);wd(2,6,3,3,2,0x5a6a3a);wd(-1,-5,.8,.8,.5,0x8a6a2a);wd(6,0,2,1,1,0x6a4a2a);wd(11,-6,1.4,1.4,1,0x5a4a3a);
+const campF=new T.Mesh(new T.BoxGeometry(.5,.4,.5),new T.MeshBasicMaterial({color:0xff7a1a}));campF.position.set(11,.3,4.5);WW.g.add(campF);const fl2=new T.PointLight(0xff9a40,1,16);fl2.position.set(11,1.5,4.5);WW.g.add(fl2);
+[[20,8,2,2,1.4],[30,-8,2.4,2,1.6],[19,-17,2,2,1.2],[31,12,2,2,1.5]].forEach(a=>rk(a[0],a[1],a[2],a[3],a[4]));
+const mural=WW.dec(38,1.4,-9.9,3,1.8,.2,0x7a6a4a);
+const CPL=[[42,-6,0xffa726,'橙色'],[42,6,0x4fc3ff,'藍色'],[47,0,0x6bff8a,'綠色']].map(([x,z,c,n])=>{const m=new T.Mesh(new T.BoxGeometry(2,.14,2),new T.MeshLambertMaterial({color:c,emissive:0x000000}));m.position.set(x,.07,z);WW.g.add(m);return{x,z,c,n,m,was:false}});
+rk(57,0,1.4,1.4,1.2);const idol=new T.Mesh(new T.OctahedronGeometry(.4),new T.MeshLambertMaterial({color:0xffc933,emissive:0x664400}));idol.position.set(57,1.7,0);WW.g.add(idol);
+const exR=new T.Mesh(new T.RingGeometry(1.6,2,28),new T.MeshBasicMaterial({color:0x6bff8a,side:T.DoubleSide}));exR.rotation.x=-Math.PI/2;exR.position.set(-36,.06,0);WW.g.add(exR);
+const CHP=[[18,-9],[-9,6],[15,12],[8,3]],chM=CHP.map(([x,z])=>{const m=new T.Mesh(new T.BoxGeometry(.9,.6,.6),new T.MeshLambertMaterial({color:0xa87a2a,emissive:0x331a00}));m.position.set(x,.3,z);m.visible=false;WW.g.add(m);return m});
+const O4={x:6,z:0},hdg=()=>{const a=((Math.atan2(-Math.sin(P.yaw),Math.cos(P.yaw))*180/Math.PI)+360)%360;return['北','東北','東','東南','南','西南','西','西北'][Math.round(a/45)%8]},rel=()=>'朝向 '+hdg()+'・座標 東 '+Math.round(P.x-O4.x)+' 北 '+Math.round(-P.z);
+function wildMission(mode){const ia=[],A=mkIA(ia),X=mode=='explore',pl=(x,z)=>{const m=wd(x,z,1,.5,.3,0x9a7a4a);return m.m};
+const planks=[pl(-22,8),pl(-12,-10)];
+if(X){A(6,0,'jr','閱讀探險隊日誌',o=>{o.done=true;G.journal=true;sfx('pick');msg('日誌：遺跡在營地東邊的山谷盡頭。石橋缺 2 塊木板；洞穴很暗，需要火把；壁壘記著開門的顏色順序。','var(--am)')});
+A(-1,-5,'torch','取得火把',o=>{o.done=true;G.torch=true;sfx('pick');msg('取得火把！洞穴裡需要它照明。','var(--am)')});
+[[-22,8],[-12,-10]].forEach(([x,z],i)=>A(x,z,'plank','撿起木板',o=>{o.done=true;planks[i].visible=false;G.planks++;sfx('pick');msg('取得木板 '+G.planks+'／2','var(--am)')}));
+A(-20,-16,'spring','補充飲水',o=>{G.water=100;sfx('ok');msg('水壺補滿了。','var(--bl)')},null,{hold:1.2});
+A(11,-6,'bottle','取用營地的水壺',o=>{o.done=true;G.water=Math.min(100,G.water+60);sfx('ok');msg('補充飲水 +60','var(--bl)')});
+A(23,0,'bridge','修復石橋',o=>{if(G.planks<2){msg('橋面缺 2 塊木板（已有 '+G.planks+'）。森林裡有散落的木板。');sfx('click');return}o.done=true;G.bridge=true;const a=WALLS.indexOf(BR.m);if(a>=0)WALLS.splice(a,1);const b=COL.indexOf(BR.col);if(b>=0)COL.splice(b,1);deck.visible=true;sfx('ok');msg('石橋修好了！可以過河。','var(--ol)')},()=>!G.bridge,{hold:1.5});
+A(38,-9,'mural','閱讀洞穴壁畫',o=>{if(!G.torch){msg('洞穴太暗，看不清壁畫。你需要火把。');sfx('click');return}o.done=true;G.mural=true;sfx('pick');msg('壁畫：先踏「'+G.seqN[0]+'」，再「'+G.seqN[1]+'」，最後「'+G.seqN[2]+'」。','var(--am)')});
+A(57,0,'idol','取走黃金神像',o=>{o.done=true;G.idol=true;idol.visible=false;G.val+=1500;collect('wl_idol');exR.visible=true;sfx('bad');msg('神像到手！遺跡開始震動——回到登山口離開！','var(--rd)')},()=>G.gate,{hold:2.5})}
+else{A(6,0,'jr','閱讀探險隊日誌（地圖碎片 1）',o=>{o.done=true;G.frag++;G.frg[0]=true;sfx('pick');msg('碎片 1：寶箱 A 在營地「東 12、北 9」。','var(--am)')});
+A(-24,10,'f2','撿起地圖碎片 2',o=>{o.done=true;G.frag++;G.frg[1]=true;sfx('pick');msg('碎片 2：寶箱 B 在營地「西 15、南 6」。','var(--am)')});
+A(20,-14,'f3','撿起地圖碎片 3',o=>{o.done=true;G.frag++;G.frg[2]=true;sfx('pick');msg('碎片 3：寶箱 C 在營地「東 9、南 12」。','var(--am)')});
+CHP.forEach(([x,z],i)=>A(x,z,'chest','挖掘寶箱',o=>{o.done=true;chM[i].visible=true;G.dug++;G.val+=[500,500,500,1200][i];collect('wl_c'+i);sfx('ok');msg('挖到寶箱 '+'ABCD'[i]+'！（'+G.dug+'／4）'+(i==2&&G.dug==3?' 日誌背面寫著：第四個寶箱在 A、B、C 三處寶箱所圍三角形的「正中央」（三點座標各取平均）。':''),'var(--am)')},i<3?()=>G.frg[i]:()=>G.frag>=3,{hold:2,i}))}
+const M={ia,near:()=>nearIn(ia),hud:rel,
+reset(){const D=baseReset(-36,0,-Math.PI/2,X?1.6:1.5);Object.assign(G,{journal:false,torch:false,planks:0,bridge:false,mural:false,gate:false,idol:false,water:100,storm:0,seq:[0,1,2].sort(()=>Math.random()-.5),pl:0,frag:0,frg:[false,false,false],dug:0,hit:0});G.seqN=G.seq.map(i=>CPL[i].n);
+restore([GR]);BR.m.visible=true;if(!WALLS.includes(BR.m)){WALLS.push(BR.m);COL.push(BR.col)}deck.visible=false;ia.forEach(o=>o.done=false);planks.forEach(m=>m.visible=true);exR.visible=false;idol.visible=true;chM.forEach(m=>m.visible=false);CPL.forEach(c=>{c.m.material.emissive.setHex(0);c.was=false});
+sc.fog.far=WG[4].ff;spawnList(D,X?[]:[[14,-6],[-6,4],[12,10]].slice(0,diff=='easy'?1:diff=='normal'?2:3));buildLoadout()},
+step(dt,tg){G.inv=Math.max(0,G.inv-dt);animStep(dt);const f=diff=='hard'?1.6:diff=='normal'?1.3:1;
+if(X){G.water=Math.max(0,G.water-dt*.11*f);if(G.water<=0&&!G.inv){G.inv=1;G.hit++;hurt(2)}
+if(G.el>75&&G.el<100){if(!G.storm){G.storm=1;msg('濃霧來襲！看不清遠方，用左上角的朝向與座標判斷方向。','var(--am)')}sc.fog.far=16}else sc.fog.far=P.x>33?(G.torch?24:7):WG[4].ff;
+CPL.forEach((c,i)=>{const on=Math.hypot(P.x-c.x,P.z-c.z)<1.15;if(on&&!c.was&&G.mural&&!G.gate){if(G.seq[G.pl]==i){G.pl++;c.m.material.emissive.setHex(c.c);sfx('ok');if(G.pl>=3){G.gate=true;openSolid(GR);msg('水晶全部亮起，遺跡之門開啟！','var(--ol)')}else msg('水晶亮起 '+G.pl+'／3','var(--bl)')}else{G.pl=0;CPL.forEach(q=>q.m.material.emissive.setHex(0));G.hit++;sfx('bad');msg('石塊掉落！（-10）順序不對，請回想壁畫。','var(--rd)');hurt(10)}}c.was=on});
+G.obj=diff=='hard'?null:!G.journal?{x:6,z:0}:G.planks<2?ia.find(o=>o.k=='plank'&&!o.done):!G.bridge?{x:23,z:0}:!G.torch?{x:-1,z:-5}:!G.mural?{x:38,z:-9}:!G.gate?CPL[G.seq[G.pl]]:!G.idol?{x:57,z:0}:{x:-36,z:0}}
+else{G.obj=diff=='hard'?null:G.frag<3?[ia[0],ia[1],ia[2]].find(o=>!o.done):ia.find(o=>o.k=='chest'&&!o.done&&(!o.av||o.av()))}
+const r=doHold(tg,dt);
+if(X&&G.idol&&Math.hypot(P.x+36,P.z)<2){end(true,'帶著神像安全離開');return['',0]}
+if(!X&&G.dug>=4){end(true,'四個寶箱全部挖出');return['',0]}
+return r},
+ob(){const e=diff!='hard';if(X)return '<b style="color:var(--bl)">探險目標</b><br>'+pn(G.journal,'找到營地、讀日誌')+'<br>'+pn(G.bridge,'木板 '+G.planks+'/2，修復石橋')+'<br>'+pn(G.mural,'帶火把讀洞穴壁畫')+'<br>'+pn(G.gate,'依序踏水晶開遺跡之門')+'<br>'+pn(G.idol,'取得神像並回登山口')+'<br><b style="color:var(--am)">飲水</b> '+Math.round(G.water)+'%'+(e&&G.water<30?' <span class="mu">（森林北邊有泉水）</span>':'');
+return '<b style="color:var(--bl)">尋寶計畫</b><br>'+pn(G.frg[0],'碎片1：A 東12 北9')+'<br>'+pn(G.frg[1],'碎片2：B 西15 南6')+'<br>'+pn(G.frg[2],'碎片3：C 東9 南12')+'<br>'+pn(G.dug>=4,'寶箱 '+G.dug+'/4'+(G.frag>=3&&G.dug>=3&&e?'（D＝ABC 平均）':''))+'<br><span class="mu">座標以營地日誌桌為原點</span>'},
+stars(){return 1+(G.t>DIFF[diff].time*1.5*.4?1:0)+(P.hp>=P.mx*.5?1:0)},
+sum(){return X?'飲水剩 '+Math.round(G.water)+'%，受傷 '+G.hit+' 次':'寶箱 '+G.dug+'／4，擊倒 '+G.kills}};
+return M}
+const MISS={'3:extract':cityMission('extract'),'3:mystery':cityMission('mystery'),'4:explore':wildMission('explore'),'4:treasure':wildMission('treasure')};
+/* ===== 第八批：共用面板、推理引擎、收藏與成就 ===== */
+const FORCE=i=>{WP=WEAPONS[i];W.mag=WP.mag;W.mx=WP.mag;W.res=Math.round(DIFF[diff].ammo*WP.rs*CH.am);W.rl=0;buildLoadout()};
+function ovOpen(title){state='kp';fh=ah=use=0;if(document.pointerLockElement)document.exitPointerLock();$('cm').textContent='';$('ct').textContent=title;$('cf').innerHTML='';$('cb').innerHTML='';$('cq').textContent='';$('cs').classList.add('on')}
+const ovBtn=(t,fn)=>{const b=document.createElement('button');b.className='b';b.textContent=t;b.onclick=fn;$('cb').appendChild(b);return b};
+const ovClose=()=>{$('cs').classList.remove('on');if(state=='kp'){state='play'}};
+// --- 逐題推理 ---
+let DQ=null;
+function openDeduce(cfg){DQ={cfg,i:0};ovOpen('案情分析');dqRender()}
+function dqRender(){const c=DQ.cfg,q=c.qs[DQ.i];$('cf').innerHTML=G.evs.map((v,i)=>v?'<div>• '+c.ev[i]+'</div>':'').join('');$('cq').textContent='('+(DQ.i+1)+'/'+c.qs.length+') '+q.q;$('cb').innerHTML='';q.o.forEach((t,k)=>ovBtn(t,()=>dqAns(k)))}
+function dqAns(k){const c=DQ.cfg,q=c.qs[DQ.i];G.tries++;const have=q.need.filter(i=>G.evs[i]).length;
+if(k==q.a){if(have>=q.min){sfx('ok');DQ.i++;if(DQ.i>=c.qs.length){ovClose();end(true,c.win);return true}$('cm').textContent='正確！繼續下一題。';dqRender();return true}$('cm').textContent='方向或許是對的，但佐證不足（'+have+'／'+q.min+'）：'+q.lack;sfx('bad');return false}
+const w=q.w[k];$('cm').textContent=w?(G.evs[w.e]?w.y:w.n):'這個推論與目前的證據不符，再想想。';sfx('bad');return false}
+function mysteryMission(base,cfg,ev,evN,posList,avList,extra){const ia=base.slice(),A=mkIA(ia);
+posList.forEach((p,i)=>A(p[0],p[1],'ev','調查：'+evN[i],o=>{o.done=true;G.evs[i]=true;sfx('pick');msg('證據 '+(i+1)+'／'+ev.length+'：'+ev[i],'var(--am)')},avList[i]||null,{i}));return{ia,A}}
+// --- 電路開關謎題（保證有唯一解）---
+let PNL=null;
+function genPanel(n){const sol=[...Array(n)].map(()=>Math.random()<.5?1:0),L='ABCDE',pool=[];
+for(let a=0;a<n;a++)for(let b=0;b<n;b++){if(a==b)continue;pool.push({t:L[a]+' 和 '+L[b]+' 不能同時開',f:s=>!(s[a]&&s[b])});pool.push({t:L[a]+' 開著時，'+L[b]+' 必須開',f:s=>!s[a]||s[b]});if(a<b){pool.push({t:L[a]+' 和 '+L[b]+' 狀態相同',f:s=>s[a]==s[b]});pool.push({t:L[a]+' 和 '+L[b]+' 狀態相反',f:s=>s[a]!=s[b]})}}
+for(let k=0;k<=n;k++)pool.push({t:'總共恰好開 '+k+' 個',f:s=>s.reduce((x,y)=>x+y,0)==k});
+const all=[];for(let m=0;m<1<<n;m++)all.push([...Array(n)].map((_,i)=>(m>>i)&1));const good=shuf(pool.filter(r=>r.f(sol))),rules=[];let cand=all;
+for(const r of good){const nc=cand.filter(r.f);if(nc.length<cand.length){rules.push(r);cand=nc;if(cand.length==1)break}}
+for(let i=0;i<n&&cand.length>1;i++){const r={t:L[i]+' 必須'+(sol[i]?'開':'關'),f:s=>s[i]==sol[i]};const nc=cand.filter(r.f);if(nc.length<cand.length){rules.push(r);cand=nc}}
+return{rules,sol,n,cur:[...Array(n)].map(()=>0)}}
+function openPanel(done){PNL=genPanel(diff=='hard'?5:4);PNL.done=done;ovOpen('配電盤：能源線路');$('cq').textContent='依下列規則設定開關，再按「接通電力」';$('cf').innerHTML=PNL.rules.map(r=>'<div>• '+r.t+'</div>').join('');panelDraw()}
+function panelDraw(){$('cb').innerHTML='';PNL.cur.forEach((v,i)=>{const b=ovBtn('ABCDE'[i]+'：'+(v?'開':'關'),()=>{PNL.cur[i]^=1;sfx('click');panelDraw()});b.style.minWidth='64px';if(v)b.style.background='#1f6a7a'});ovBtn('接通電力',panelCheck)}
+function panelCheck(){const bad=PNL.rules.find(r=>!r.f(PNL.cur));if(bad){$('cm').textContent='電路不穩！違反規則：'+bad.t;sfx('bad');G.tries++;return false}sfx('ok');const d=PNL.done;PNL=null;ovClose();d();return true}
+// --- 記憶序列謎題 ---
+let SIM=null;
+function simonShow(){const bs=SIM.bs;SIM.showing=true;$('cq').textContent='記住燈號順序';let t=500;SIM.seq.forEach(k=>{setTimeout(()=>{if(SIM&&bs[k]){bs[k].style.opacity=1;sfx('click')}},t);setTimeout(()=>{if(SIM&&bs[k])bs[k].style.opacity=.55},t+450);t+=700});setTimeout(()=>{if(SIM){SIM.showing=false;$('cq').textContent='輪到你：依序按出剛才的燈號（'+SIM.seq.length+' 個）'}},t)}
+function openSimon(len,done){SIM={seq:[...Array(len)].map(()=>rnd(4)),i:0,done};ovOpen('控制終端：安全序列');const cols=['#e5533d','#4fc3ff','#6bff8a','#ffa726'],nm=['紅','藍','綠','橙'];SIM.bs=cols.map((c,k)=>{const b=ovBtn(nm[k],()=>simonPress(k));b.style.cssText='background:'+c+';color:#000;min-width:62px;opacity:.55';return b});simonShow()}
+function simonPress(k){if(!SIM||SIM.showing)return false;if(k==SIM.seq[SIM.i]){SIM.i++;sfx('click');if(SIM.i>=SIM.seq.length){const d=SIM.done;SIM=null;ovClose();sfx('ok');d()}return true}G.tries++;SIM.i=0;G.t-=10;sfx('bad');$('cm').textContent='順序錯了！請重新觀看再試（時間 −10 秒）';simonShow();return false}
+// --- 收藏與成就 ---
+const COLL=[['mil_cache','軍用補給盒','軍事禁區・破關挑戰的隱藏補給點',1],['lb_disk','研究資料碟','地下研究所的隱藏實驗室',1],['ru_t0','金面具','失落遺跡',0],['ru_t1','古代金幣','失落遺跡',0],['ru_t2','青玉神像','失落遺跡',0],['ru_t3','黃金項鍊','失落遺跡・隱藏墓道',1],['ru_t4','星象儀','失落遺跡・寶藏庫',0],['ru_t5','法老王冠','失落遺跡・寶藏庫',0],['ru_crown','真品王冠','失落遺跡・尋寶計畫',0],['ru_star','祕境星盤','失落遺跡・尋寶計畫（隱藏墓道）',1],['ct_intel','隱藏情報文件','都市危機・隱藏情報室',1],['ct_gem','失竊的藍寶石','都市危機・尋寶計畫',0],['wl_c0','寶箱 A','神秘荒野・尋寶計畫',0],['wl_c1','寶箱 B','神秘荒野・尋寶計畫',0],['wl_c2','寶箱 C','神秘荒野・尋寶計畫',0],['wl_c3','寶箱 D（座標平均）','神秘荒野・尋寶計畫',1],['wl_idol','黃金神像','神秘荒野・遺跡深處',0],['wl_hid','洞穴暗格寶箱','神秘荒野・破關挑戰',1]];
+function collect(id){if(!SV.col[id]){SV.col[id]=1;save();return true}return false}
+const WRK=()=>Object.keys(SV.wr).filter(k=>SV.wr[k].wins>0),lvOf=()=>Math.floor(Math.sqrt((SV.xp||0)/100))+1;
+const ACH=[['first','首次成功','完成任意一個任務',()=>WRK().length>=1],['w3','三地行動','在 3 個不同世界通關',()=>new Set(WRK().map(k=>k.split(':')[0])).size>=3],['w5','五界旅人','五個世界都通關過',()=>new Set(WRK().map(k=>k.split(':')[0])).size>=5],
+['c5','五種任務','通關 5 種世界與玩法組合',()=>WRK().length>=5],['c10','十種任務','通關 10 種組合',()=>WRK().length>=10],['c15','全能特勤','通關全部 15 種組合',()=>WRK().length>=15],
+['mys','神探','完成 2 個推理劇情',()=>WRK().filter(k=>k.endsWith(':mystery')).length>=2],['tre','尋寶專家','完成 2 個尋寶計畫',()=>WRK().filter(k=>k.endsWith(':treasure')).length>=2],['stg','破關高手','完成 2 個破關挑戰',()=>WRK().filter(k=>k.endsWith(':stage')).length>=2],
+['hard1','專家挑戰','以專家難度通關 1 次',()=>WRK().some(k=>SV.wr[k].hard)],['hard3','專家三連','專家難度通關 3 種組合',()=>WRK().filter(k=>SV.wr[k].hard).length>=3],
+['star3','滿星','任一組合拿到三星',()=>WRK().some(k=>SV.wr[k].stars>=3)],['star15','星光閃耀','累計 15 顆最佳星級',()=>WRK().reduce((a,k)=>a+(SV.wr[k].stars||0),0)>=15],
+['col6','收藏家','收藏 6 件寶物',()=>Object.keys(SV.col).length>=6],['col12','博物館長','收藏 12 件寶物',()=>Object.keys(SV.col).length>=12],['hid3','尋隱者','找到 3 個隱藏收藏',()=>COLL.filter(c=>c[3]&&SV.col[c[0]]).length>=3],['lv5','資深特勤','等級達到 5',()=>lvOf()>=5]];
+function achCheck(){const nu=[];ACH.forEach(a=>{if(!SV.ach[a[0]]&&a[3]()){SV.ach[a[0]]=1;nu.push(a[1])}});return nu}
+const COMBOS=[[0,'extract'],[0,'mystery'],[0,'stage'],[1,'extract'],[1,'mystery'],[1,'stage'],[2,'explore'],[2,'treasure'],[2,'stage'],[3,'extract'],[3,'mystery'],[3,'treasure'],[4,'explore'],[4,'treasure'],[4,'stage']];
+function achUI(tab){const v=$('av');let h='';['a1','a2','a3'].forEach((id,i)=>$(id).classList.toggle('on',i==tab));
+if(tab==0){h='<p class="mu">等級 Lv'+lvOf()+'・經驗值 '+(SV.xp||0)+'・已通關 '+WRKn()+'／15 種組合</p><div class="rs" style="grid-template-columns:1fr auto auto">';COMBOS.forEach(([w,m])=>{const r=SV.wr[w+':'+m],ok=canPlay(w,m);h+='<span>'+WORLDS[w].n+'・'+mdOf(m).n+'</span><span>'+(r&&r.wins?'★'.repeat(r.stars||0)+'☆'.repeat(3-(r.stars||0)):ok?'未通關':'🔒')+'</span><span>'+(r&&r.hard?'專家✓':'')+'</span>'});h+='</div>'}
+else if(tab==1){h=ACH.map(a=>'<div style="margin:6px 0;'+(SV.ach[a[0]]?'':'opacity:.5')+'"><b>'+(SV.ach[a[0]]?'🏅 ':'🔒 ')+a[1]+'</b><br><span class="mu">'+a[2]+'</span></div>').join('')}
+else{h='<p class="mu">已收藏 '+Object.keys(SV.col).length+'／'+COLL.length+'</p>'+COLL.map(c=>{const g=SV.col[c[0]];return '<div style="margin:5px 0;'+(g?'':'opacity:.5')+'"><b>'+(g?'💎 '+c[1]:'？？？'+(c[3]?'（隱藏）':''))+'</b><br><span class="mu">'+(g?'':'線索：')+c[2]+'</span></div>'}).join('')}
+v.innerHTML=h}
+const WRKn=()=>COMBOS.filter(([w,m])=>SV.wr[w+':'+m]&&SV.wr[w+':'+m].wins>0).length;
+$('ab').onclick=()=>{achUI(0);show('ac',true)};$('ax').onclick=()=>show('ac',false);['a1','a2','a3'].forEach((id,i)=>$(id).onclick=()=>achUI(i));
+/* ===== 第八批：剩餘 8 種世界與玩法 ===== */
+const restoreDoor=()=>{if(!WALLS.includes(DOOR.m)){WALLS.push(DOOR.m);COL.push(DOOR.col)}DOOR.m.position.y=2;DOOR.m.visible=true;EXT.visible=false};
+const nxt=(ia,f)=>ia.find(o=>!o.done&&o.k=='ev'&&(!o.av||o.av()));
+const evOb=(title,names,evs,hint)=>'<b style="color:var(--bl)">'+title+'</b><br>'+names.map((n,i)=>evs[i]?'✓ '+n:'□ ？？？').join('<br>')+'<br><span class="mu">'+hint+'</span>';
+/* ---- 軍事禁區｜推理劇情 ---- */
+const MIL_EV=['通訊日誌：03:10，一則加密訊息從「天線機房」發出。','門禁紀錄：03:10 天線機房內只有技師吳（02:55 進、03:20 出）。','維修單：吳 02:55 進機房是「例行檢修」，但簽發人是通訊官趙，並要求吳「立刻進機房」。','金鑰紀錄：那則訊息用的是趙的個人加密金鑰，金鑰 02:30 由趙本人領取。','補給日誌：補給官孫 03:00–03:40 在倉庫盤點，有監視畫面佐證。','巡邏紀錄：衛兵隊長周 03:05 在機房外走廊看見趙與吳交談，隨後離開。'],MIL_N=['通訊日誌','門禁紀錄','維修單','金鑰紀錄','補給日誌','巡邏紀錄'];
+const MILCFG={ev:MIL_EV,win:'真相大白：通訊官趙洩漏了情報',qs:[
+{q:'是誰洩漏了基地情報？',o:['通訊官 趙','補給官 孫','衛兵隊長 周','技師 吳'],a:0,need:[2,3,5],min:2,lack:'還需要更多能指向他的證據（維修單、金鑰紀錄、巡邏紀錄）。',w:{3:{e:2,y:'不對。維修單顯示是趙要求吳進機房，吳只是被安排在現場。',n:'吳確實單獨在機房，但你還沒查清他為什麼在那裡。'},1:{e:4,y:'不對。補給日誌與監視畫面證明孫整晚在倉庫。',n:'孫有機會嗎？你還缺能說明他行蹤的證據。'},2:{e:5,y:'不對。周只是巡邏經過走廊，沒有進入機房。',n:'周的行蹤你還沒查清楚。'}}},
+{q:'訊息是用什麼方式傳出去的？',o:['用趙的金鑰，從天線機房發送','用衛星電話在營區外發送','把紙本文件帶出基地'],a:0,need:[0,3],min:2,lack:'通訊日誌與金鑰紀錄要一起看。',w:{1:{e:0,y:'不對。通訊日誌顯示訊息來自天線機房。',n:'你還沒看過通訊日誌。'},2:{e:0,y:'不對。日誌顯示那是電子加密訊息。',n:'你還沒看過通訊日誌。'}}},
+{q:'趙為什麼要讓吳進機房？',o:['想讓吳成為替罪羊','吳需要趙的協助','機房本來就該兩人值班'],a:0,need:[1,2],min:2,lack:'比對門禁紀錄與維修單。',w:{1:{e:2,y:'不對。維修單是趙簽發的指令，不是求助。',n:'先看維修單。'},2:{e:1,y:'不對。門禁紀錄顯示機房當時只有吳一人。',n:'先看門禁紀錄。'}}}]};
+function milMystery(){const{ia,A}=mysteryMission([],MILCFG,MIL_EV,MIL_N,[[6,-5.8],[-7,3.4],[6,3.4],[15,-18.4],[-2,22.4],[-18,-16.4]],[]);
+A(4,0,'cb','查看調查板',o=>{const n=G.evs.filter(x=>x).length;if(n<4){msg('證據還太少（'+n+'／6）。基地各處的箱子與終端機附近都有紀錄。');sfx('click');return}openDeduce(MILCFG)});
+return{ia,near:()=>nearIn(ia),hud:()=>'',reset(){const D=baseReset(-26,0,-Math.PI/2,1.5);G.evs=[0,0,0,0,0,0].map(()=>false);restoreDoor();ia.forEach(o=>o.done=false);spawnList(D,HOMES.slice(0,diff=='easy'?2:diff=='normal'?3:4));buildLoadout()},
+step(dt,tg){G.inv=Math.max(0,G.inv-dt);const n=G.evs.filter(x=>x).length;G.obj=diff=='hard'?null:n>=4?{x:4,z:0}:nxt(ia);return doHold(tg,dt)},
+ob(){const n=G.evs.filter(x=>x).length;return evOb('情報洩漏調查',MIL_N,G.evs,n>=4?'可到建築內的調查板分析':diff!='hard'?'搜索終端機與各處箱子旁的紀錄':'')},
+stars(){return 1+(G.tries<=3?1:0)+(G.evs.every(x=>x)?1:0)},sum(){return '證據 '+G.evs.filter(x=>x).length+'／6，推理 '+G.tries+' 次'}}}
+/* ---- 軍事禁區｜破關挑戰 ---- */
+function milStage(){const ia=[],A=mkIA(ia);
+A(6,-5.8,'s1','潛入：下載守備圖',o=>{o.done=true;G.stage=2;FORCE(SV.sel.w);sfx('ok');msg('守備圖到手！第二階段：破解東側防禦系統（裝備限制已解除）','var(--ol)')},()=>G.stage==1,{hold:3});
+[[-18,-16.4],[-2,22.4],[20,14.4]].forEach(([x,z],i)=>A(x,z,'note','讀取防禦節點日誌',o=>{o.done=true;G.notes++;G.clues[i]='✓';G.rid[i]=ridl(G.code[i]);sfx('pick');msg('日誌：防禦系統密碼第 '+(i+1)+' 碼＝ '+G.rid[i],'var(--am)')},()=>G.stage>=2,{i}));
+A(22.2,3.6,'kp','輸入防禦系統密碼',o=>openKp(),()=>G.stage==2);
+A(22,27.4,'cache','搜索補給點後方',o=>{o.done=true;G.hid=true;G.val+=700;collect('mil_cache');sfx('ok');msg('找到隱藏的補給盒（價值 700）','var(--am)')},()=>G.stage>=2,{hold:1.5});
+return{ia,near:()=>nearIn(ia),hud:()=>G.stage==3?'撤離倒數 '+Math.max(0,Math.ceil(G.cd))+' 秒':'階段 '+G.stage+'／3',
+reset(){const D=baseReset(-26,0,-Math.PI/2,1.2);Object.assign(G,{stage:1,code:[1+rnd(9),1+rnd(9),1+rnd(9)],rid:['','',''],notes:0,spotted:false,hid:false,cd:diff=='hard'?60:diff=='normal'?75:90,kpMsg:'防禦系統解除！東側閘門開啟，撤離窗口開始倒數！',kpHint:'輸入 3 位密碼：每一碼是日誌上算式的答案。'});
+G.onCode=()=>{G.stage=3;G.door=true;openDoor();[[12,-6],[12,6],[14,0],[10,10]].slice(0,diff=='hard'?4:diff=='normal'?3:2).forEach(a=>spawnE(a[0],a[1]));alarmAll()};
+restoreDoor();ia.forEach(o=>o.done=false);spawnList(D,HOMES.slice(0,diff=='easy'?2:diff=='normal'?3:4));FORCE(9)},
+step(dt,tg){G.inv=Math.max(0,G.inv-dt);animStep(dt);if(G.stage==1&&!G.spotted&&E.some(e=>e.state=='alert')){G.spotted=true;msg('被發現了！守衛警戒（潛入失敗，但任務繼續）','var(--rd)')}
+if(G.stage==3){G.cd-=dt;if(G.cd<=0){end(false,'撤離窗口關閉');return['',0]}}
+G.obj=diff=='hard'?null:G.stage==1?{x:6,z:-5.8}:G.stage==2?(G.notes<3?ia.find(o=>o.k=='note'&&!o.done):{x:22.2,z:3.6}):{x:27.5,z:0};
+const r=doHold(tg,dt);if(G.stage==3&&Math.hypot(P.x-27.5,P.z)<3){G.ext+=dt;r[0]='撤離中…';r[1]=G.ext/2;if(G.ext>=2){end(true,'限時撤離成功');return['',0]}}else G.ext=0;return r},
+ob(){const L=(a,t)=>pn(a,t);return '<b style="color:var(--bl)">破關挑戰</b><br>'+L(G.stage>1,'①潛入：僅能用弩，下載守備圖'+(G.spotted?'（已被發現）':''))+'<br>'+L(G.stage>2,'②破解防禦：讀 '+G.notes+'/3 份日誌＋密碼')+'<br>'+L(false,'③'+(G.stage==3?Math.max(0,Math.ceil(G.cd))+' 秒內':'限時')+'撤離')+'<br><b style="color:var(--am)">密碼算式</b> '+G.rid.map((r,i)=>(i+1)+':'+(r||'？')).join(' ')},
+stars(){return 1+(G.spotted?0:1)+(G.hid?1:0)},sum(){return '潛入'+(G.spotted?'被發現':'未被發現')+'，隱藏補給 '+(G.hid?'已取得':'未發現')}}}
+/* ---- 地下研究所｜推理劇情 ---- */
+const LAB_EV=['設備狀態板：冷卻泵 B 在 02:10 顯示「停止」。','值班日誌：技師記錄「02:00–03:00 冷卻系統正常運作」。','溫度紀錄：反應艙溫度 02:12 起上升，02:40 達到警戒值。','監控紀錄：02:05 有人手動關閉冷卻泵 B 的閥門。','門禁紀錄：02:00–02:20 只有主管劉持卡進入設備層。','事故報告草稿（劉）：「事故原因是機械老化，與人員無關」。'],LAB_N=['設備狀態板','值班日誌','溫度紀錄','監控紀錄','門禁紀錄','報告草稿'];
+const LABCFG={ev:LAB_EV,win:'事故真相查明：主管劉關閉了冷卻泵並掩蓋真相',qs:[
+{q:'事故的原因是什麼？',o:['機械老化','外部入侵','有人關閉冷卻泵的閥門','電力中斷'],a:2,need:[0,2,3],min:2,lack:'要比對設備狀態、溫度紀錄與監控紀錄的時間順序。',w:{0:{e:3,y:'不對。監控顯示 02:05 有人手動關閉閥門，在溫度上升之前。',n:'報告說是老化，但你還沒查證設備與監控紀錄。'},3:{e:0,y:'不對。設備狀態板只顯示泵 B 停止，其他設備仍有電。',n:'先看設備狀態板。'},1:{e:4,y:'不對。門禁紀錄顯示當時設備層只有主管劉進入。',n:'你還沒看過門禁紀錄。'}}},
+{q:'誰關閉了閥門？',o:['值班技師','主管劉','清潔人員','外部人員'],a:1,need:[3,4,5],min:2,lack:'比對門禁、監控與報告草稿。',w:{0:{e:4,y:'不對。02:00 起設備層只有劉進入，技師不在場。',n:'你還沒查清技師當時在不在設備層。'},2:{e:4,y:'不對。門禁紀錄沒有清潔人員進入。',n:'先看門禁紀錄。'},3:{e:4,y:'不對。門禁紀錄沒有外部人員進入。',n:'先看門禁紀錄。'}}},
+{q:'哪一份文件的說法被其他證據推翻？',o:['值班日誌「系統正常」被設備狀態板與溫度紀錄推翻','門禁紀錄與監控紀錄互相矛盾','溫度紀錄與設備狀態板互相矛盾'],a:0,need:[0,1,2],min:3,lack:'需要同時看過值班日誌、設備狀態板與溫度紀錄。',w:{1:{e:3,y:'不對。這兩份其實互相吻合：02:05 有人關閥，02:00–02:20 只有劉在場。',n:'先把門禁與監控兩份都讀完。'},2:{e:2,y:'不對。泵停止後溫度上升，兩者吻合。',n:'先看溫度紀錄。'}}}]};
+function labMystery(){const base=['fuse','pb','card','rd','st'].flatMap(k=>LB.ia.filter(o=>o.k==k));const{ia,A}=mysteryMission(base,LABCFG,LAB_EV,LAB_N,[[-1,-8.2],[4,3.6],[14,10],[30,-10],[-30,6],[22,-20.5]],[null,null,()=>G.dc,()=>G.dc,null,()=>G.hidOpen]);
+A(22,-12.4,'vent2','檢查標本櫃',o=>{if(G.evs.filter(x=>x).length<4){msg('櫃子後面似乎有氣流，但你還沒掌握足夠的線索。');sfx('click');return}o.done=true;G.hidOpen=true;openSolid(HP);sfx('ok');msg('櫃子後方有暗門！','var(--am)')});
+A(4,-3.6,'cb','查看事故分析板',o=>{const n=G.evs.filter(x=>x).length;if(n<4){msg('證據還太少（'+n+'／6）。');sfx('click');return}openDeduce(LABCFG)});
+return{ia,near:()=>nearIn(ia),hud:()=>'',reset(){resetLab();const D=DIFF[diff];G.t=D.time*1.5;G.evs=[0,0,0,0,0,0].map(()=>false);E.forEach(e=>sc.remove(e.g));spawnList(D,[[-24,5],[5,-3],[16,0]].slice(0,diff=='easy'?1:diff=='normal'?2:3));ia.forEach(o=>o.done=false);buildLoadout()},
+step(dt,tg){const r=labStep(dt,tg);const n=G.evs.filter(x=>x).length;G.obj=diff=='hard'?null:!G.power?LB.ia.find(o=>o.k=='fuse'&&!o.done)||{x:-30,z:-9}:n>=4?{x:4,z:-3.6}:ia.find(o=>o.k=='ev'&&!o.done&&(!o.av||o.av()));return r},
+ob(){const n=G.evs.filter(x=>x).length;return evOb('事故調查',LAB_N,G.evs,!G.power?'先恢復電力（找 2 顆保險絲）':n>=4?'可到控制室的分析板':diff!='hard'?'控制室、實驗室、設備區都有紀錄':'')},
+stars(){return 1+(G.tries<=3?1:0)+(G.evs.every(x=>x)?1:0)},sum(){return '證據 '+G.evs.filter(x=>x).length+'／6，推理 '+G.tries+' 次'}}}
+/* ---- 地下研究所｜破關挑戰 ---- */
+function labStage(){const base=['ct','disk','med'].flatMap(k=>LB.ia.filter(o=>o.k==k)),ia=base.slice(),A=mkIA(ia);
+A(-30,-9,'pb2','檢查配電盤',o=>openPanel(()=>{G.power=true;G.stage=2;pbG.material.color.setHex(0x6bff8a);openSolid(DA);openSolid(DC);sfx('ok');msg('電路接通！設備區與實驗室的電子門開啟。','var(--ol)')}),()=>!G.power);
+A(0,-8.4,'st2','關閉雷射（會觸發警報）',o=>{o.done=true;G.lasersOff=true;alarmAll();sfx('bad');msg('雷射已關閉，但警報響起，守衛趕來了！','var(--rd)')},()=>G.power&&!G.lasersOff,{hold:3});
+A(32.6,-3.6,'sim','安全序列終端',o=>openSimon(diff=='hard'?6:diff=='normal'?5:4,()=>{G.stage=3;G.dd=true;openSolid(DD);msg('序列正確，核心閘門開啟！','var(--ol)')}),()=>G.power&&!G.dd);
+A(22,-12.4,'vent2','檢查標本櫃',o=>{o.done=true;G.hidOpen=true;openSolid(HP);sfx('ok');msg('終端機日誌提示：標本櫃後方有暗門。','var(--am)')},()=>G.dd);
+return{ia,near:()=>nearIn(ia),hud:()=>'階段 '+Math.min(3,G.stage)+'／3',reset(){resetLab();const D=DIFF[diff];G.t=D.time*.9;G.stage=1;E.forEach(e=>sc.remove(e.g));spawnList(D,[[-24,5],[5,-3],[16,0],[28,6],[0,-6]].slice(0,diff=='easy'?2:diff=='normal'?4:5));ia.forEach(o=>o.done=false);buildLoadout()},
+step(dt,tg){const r=labStep(dt,tg);G.obj=diff=='hard'?null:G.stage==1?{x:-30,z:-9}:!G.dd?{x:32.6,z:-3.6}:!G.dl?{x:46,z:0}:{x:51,z:0};return r},
+ob(){return '<b style="color:var(--bl)">破關挑戰</b><br>'+pn(G.power,'①配電盤：依規則接通電路')+'<br>'+pn(G.dd,'②穿過雷射，破解安全序列')+'<br>'+pn(G.dl,'③下載核心資料')+'<br>□ 撤離'+(diff!='hard'&&G.dd&&!G.hidOpen?'<br><span class="mu">終端機日誌提到標本櫃有暗門</span>':'')},
+stars(){return 1+(G.lz==0?1:0)+(G.hid?1:0)},sum(){return '雷射觸發 '+G.lz+' 次，隱藏資料碟 '+(G.hid?'已取得':'未發現')}}}
+/* ---- 失落遺跡：共用物件 ---- */
+const lidM=[0,1,2,3].map(i=>{const m=new T.Mesh(new T.PlaneGeometry(1.7,.9),new T.MeshBasicMaterial({map:SYM[0]}));m.rotation.x=-Math.PI/2;m.position.set([34,34,41,41][i],1.25,[-9,9,-9,9][i]);RUG.add(m);return m});
+const clueT=new T.Mesh(new T.BoxGeometry(.8,1.2,.25),new T.MeshLambertMaterial({map:stoneT}));clueT.position.set(-17.3,.6,-21.5);RUG.add(clueT);
+const brz=[32,37,42].map(x=>{const b=new T.Mesh(new T.BoxGeometry(.8,.9,.8),new T.MeshLambertMaterial({color:0x4a3a2a}));b.position.set(x,.45,-11);RUG.add(b);const f=new T.Mesh(new T.BoxGeometry(.4,1,.4),new T.MeshBasicMaterial({color:0xff8a1a}));f.position.set(x,1.4,-11);f.visible=false;RUG.add(f);const lv=new T.Mesh(new T.BoxGeometry(.4,.9,.4),new T.MeshLambertMaterial({color:0x6a6a6a}));lv.position.set(x,.5,10.9);RUG.add(lv);return{f,lv,x}});
+const sd4=i=>({s:i%2?'S':'N',c:i<2?'near':'far'}),symTx=k=>SYN[k]+'（'+SYD[k]+'）';
+function genSar(){let sy,r,pool;for(let t=0;t<2000;t++){sy=shuf([0,1,2,3]);r=rnd(4);const R=sd4(r),at=i=>Object.assign(sd4(i),{y:sy[i]});pool=[{t:'真正的石棺在墓室的'+(R.s=='N'?'北側（面向東時的左手邊）':'南側（面向東時的右手邊）'),f:i=>at(i).s==R.s},{t:'真正的石棺離墓室入口'+(R.c=='near'?'較近':'較遠'),f:i=>at(i).c==R.c}];
+for(let k=0;k<4;k++)if(k!=sy[r]){pool.push({t:'真正的石棺上刻的不是「'+symTx(k)+'」',f:i=>at(i).y!=k});pool.push({t:'真正的石棺上刻的是「'+symTx(sy[r])+'」或「'+symTx(k)+'」',f:i=>at(i).y==sy[r]||at(i).y==k})}
+const c=shuf(pool.slice()).slice(0,3);if([0,1,2,3].filter(i=>c.every(x=>x.f(i))).length==1)return{sy,r,clues:c}}
+return{sy,r,clues:pool.slice(0,3)}}
+/* ---- 失落遺跡｜尋寶計畫 ---- */
+function ruinTreasure(){const ia=[],A=mkIA(ia);
+[[-32,-12],[-24,12]].forEach(([x,z],i)=>A(x,z,'clue','讀取石板',o=>{o.done=true;G.cl[i]=true;sfx('pick');msg('石板：'+G.pz.clues[i].t,'var(--am)')},null,{i}));
+A(-17.3,-21.5,'clue','讀取暗室石板',o=>{o.done=true;G.cl[2]=true;sfx('pick');msg('石板：'+G.pz.clues[2].t,'var(--am)')},()=>G.secret,{i:2});
+ia.push(RU.statue);
+A(26.4,-8,'lever','拉動石門拉桿',o=>{o.done=true;G.gt=true;openSolid(GT);sfx('ok');msg('石門隆隆開啟。','var(--ol)')});
+const rel=(k,id,n)=>o=>{o.done=true;trs[k].visible=false;G.rel++;collect(id);sfx('ok');msg('取得文物：'+n+'（'+G.rel+'／3）','var(--am)');if(G.rel>=3){G.vault=true;msg('三件文物到手！前往寶藏庫深處的出口。','var(--ol)')}};
+A(-30,11,'relic','取得黃金面具',rel(0,'ru_t0','黃金面具'));A(-22,-19,'relic','取得祕境星盤',rel(3,'ru_star','祕境星盤'),()=>G.secret);
+[[34,-9],[34,9],[41,-9],[41,9]].forEach(([x,z],i)=>A(x,z,'sar','撬開石棺',o=>{o.done=true;if(i==G.pz.r){G.rel++;collect('ru_crown');openSolid(RU.vd);sfx('ok');msg('是真正的石棺！取得真品王冠（'+G.rel+'／3）。寶藏庫的門開啟。','var(--am)');if(G.rel>=3){G.vault=true}}else{G.wrong++;G.dmgT+=15;sfx('bad');msg('假的石棺！機關射出毒針（-15）。再看看石板的線索。','var(--rd)');hurt(15)}},()=>G.gt,{i}));
+return{ia,near:()=>nearIn(ia),hud:()=>'',reset(){resetRuins();const D=DIFF[diff];G.t=D.time*1.4;G.gate=true;G.pz=genSar();G.pz.sy.forEach((s,i)=>{lidM[i].material.map=SYM[s];lidM[i].material.needsUpdate=true});Object.assign(G,{cl:[false,false,false],rel:0,wrong:0,gt:false});ia.forEach(o=>o.done=false);RU.statue.done=false;buildLoadout()},
+step(dt,tg){const r=ruinStep(dt,tg);G.obj=diff=='hard'?null:!G.cl[0]?{x:-32,z:-12}:!G.cl[1]?{x:-24,z:12}:!G.gt?{x:26.4,z:-8}:G.rel<3?{x:38,z:0}:{x:58,z:0};return r},
+ob(){const e=diff!='hard';return '<b style="color:var(--bl)">尋寶計畫</b><br>'+G.pz.clues.map((c,i)=>G.cl[i]?'✓ '+c.t:'□ 石板 '+(i+1)+'（'+(i==2?'隱藏':'')+'？）').join('<br>')+'<br><b style="color:var(--am)">文物</b> '+G.rel+'/3'+(e&&G.cl[0]&&G.cl[1]&&!G.cl[2]?'<br><span class="mu">庭院的石像似乎藏著祕密</span>':'')},
+stars(){return 1+(G.wrong==0?1:0)+(G.dmgT<=20?1:0)},sum(){return '文物 '+G.rel+'／3，打開假石棺 '+G.wrong+' 次'}}}
+/* ---- 失落遺跡｜破關挑戰 ---- */
+function ruinStage(){const ia=RU.ia.filter(o=>o.k=='tab'||o.k=='st'||o.k=='gem'),A=mkIA(ia);
+A(11,9.4,'sun','取得日輪石片',o=>{o.done=true;trs[2].visible=false;G.sun=true;sfx('pick');msg('取得日輪石片（另一半是祕密墓道裡的月牙石片）','var(--am)')});
+A(38,0,'comb','在祭壇拼合石片',o=>{if(!(G.sun&&G.gem)){msg('祭壇有圓形凹槽，需要日輪與月牙兩片石片拼合。目前：日輪 '+(G.sun?'✓':'✗')+' 月牙 '+(G.gem?'✓':'✗'));sfx('click');return}o.done=true;G.key=true;brz.forEach((b,i)=>{b.f.visible=true;b.f.scale.set(1,G.fh[i],1);b.f.position.y=.9+G.fh[i]/2});sfx('ok');msg('石片拼合，墓室的火盆點燃了！依火勢「由強到弱」拉動對面的拉桿。','var(--ol)')},()=>G.gate&&!G.key);
+[0,1,2].forEach(i=>A(brz[i].x,10.4,'lv','拉動拉桿',o=>{if(G.lvOrder[G.lvStep]==i){G.lvStep++;brz[i].lv.material.color.setHex(0x6bff8a);sfx('ok');if(G.lvStep>=3){o.done=true;G.lvDone=true;openSolid(RU.vd);G.vault=true;msg('三根拉桿到位，寶藏庫的大門開啟！','var(--ol)')}else msg('拉桿 '+G.lvStep+'／3','var(--bl)')}else{G.lvStep=0;brz.forEach(b=>b.lv.material.color.setHex(0x6a6a6a));G.dmgT+=10;sfx('bad');msg('機關觸發（-10）！順序不對：火最旺的先拉。','var(--rd)');hurt(10)}},()=>G.key&&!G.lvDone,{i}));
+return{ia,near:()=>nearIn(ia),hud:()=>'',reset(){resetRuins();const D=DIFF[diff];G.t=D.time*.9;Object.assign(G,{sun:false,key:false,lvDone:false,lvStep:0,fh:shuf([.5,1,1.6])});G.lvOrder=[0,1,2].sort((a,b)=>G.fh[b]-G.fh[a]);brz.forEach(b=>{b.f.visible=false;b.lv.material.color.setHex(0x6a6a6a)});ia.forEach(o=>o.done=false);buildLoadout()},
+step(dt,tg){const r=ruinStep(dt,tg);G.obj=diff=='hard'?null:G.tabN<G.n?RU.ia.find(o=>o.k=='tab'&&!o.done&&o.i<G.n):!G.gate?{x:17,z:0}:!G.sun?{x:11,z:9.4}:!G.gem?(G.secret?RU.gem:RU.statue):!G.key?{x:38,z:0}:!G.lvDone?{x:37,z:10.4}:{x:58,z:0};return r},
+ob(){const e=diff!='hard';return '<b style="color:var(--bl)">破關挑戰</b><br>'+pn(G.gate,'①陷阱通道＋符文 '+G.tabN+'/'+G.n+' 石板，開石門')+'<br>'+pn(G.sun&&G.gem,'②找齊日輪＋月牙石片'+(e&&!G.gem&&G.sun?'（庭院石像）':''))+'<br>'+pn(G.key,'③在祭壇拼合石片')+'<br>'+pn(G.lvDone,'④依火勢強弱拉桿')+'<br>□ 前往出口'},
+stars(){return 1+(G.dmgT<=20?1:0)+(G.t>DIFF[diff].time*.9*.4?1:0)},sum(){return '陷阱／機關傷害 '+G.dmgT}}}
+/* ---- 都市危機｜尋寶計畫 ---- */
+const SPOTS=[{x:-33,z:7.6,zn:'街道',inn:0,mt:'金屬',n:'垃圾桶'},{x:-30,z:-9.6,zn:'街道',inn:0,mt:'玻璃',n:'電話亭'},{x:17,z:6.6,zn:'大樓',inn:1,mt:'木頭',n:'辦公桌'},{x:8,z:22.3,zn:'屋頂',inn:0,mt:'金屬',n:'冷氣機'},{x:-33,z:24.1,zn:'地下通道',inn:1,mt:'木頭',n:'木箱'},{x:-24,z:42.2,zn:'隱藏情報室',inn:1,mt:'金屬',n:'暗室櫃子'}],ZN=['街道','大樓','屋頂','地下通道','隱藏情報室'];
+function genSpot(){let r,pool;for(let t=0;t<2000;t++){r=rnd(6);const R=SPOTS[r];pool=[];ZN.forEach(z=>{if(z!=R.zn){pool.push({t:'贓物不在「'+z+'」',f:s=>s.zn!=z});ZN.forEach(z2=>{if(z2!=R.zn&&z2<z)pool.push({t:'贓物在「'+R.zn+'」或「'+z2+'」',f:s=>s.zn==R.zn||s.zn==z2})})}});
+pool.push({t:'贓物藏在'+(R.inn?'室內':'戶外'),f:s=>s.inn==R.inn});['金屬','木頭','玻璃'].forEach(m=>{if(m!=R.mt)pool.push({t:'藏匿處不是'+m+'做的',f:s=>s.mt!=m})});pool.push({t:'藏匿處是'+R.mt+'做的',f:s=>s.mt==R.mt});
+const c=shuf(pool.slice()).slice(0,3);if(SPOTS.filter(s=>c.every(x=>x.f(s))).length==1)return{r,clues:c}}
+const R=SPOTS[r];return{r,clues:[{t:'贓物在「'+R.zn+'」'},{t:'贓物藏在'+(R.inn?'室內':'戶外')},{t:'藏匿處是'+R.mt+'做的'}]}}
+function cityTreasure(){const ia=[],A=mkIA(ia);
+A(-18,0,'mh','下去地下通道',o=>{tp(-34,26,-Math.PI/2);msg('進入：地下通道','var(--am)')});A(-36.5,27,'lu','爬回街道',o=>{tp(-18,2.6,0)});
+A(-7,3.8,'van','搜查廂型車',o=>{o.done=true;G.card=true;sfx('pick');msg('找到門禁卡，可以開啟大樓大門。','var(--am)')});
+A(-1.5,0,'rd','刷門禁卡',o=>{if(!G.card){msg('讀卡機：需要門禁卡。附近停著一輛廂型車。');sfx('click');return}o.done=true;G.dl=true;openSolid(DL);sfx('ok');msg('大門開啟。','var(--ol)')});
+A(20,7.4,'su','走樓梯上屋頂',o=>{tp(3,23.2,Math.PI)},()=>G.dl);A(3,21.4,'sd','走樓梯下樓',o=>{tp(19.4,6.6,0)});
+A(-24,33.2,'gf','檢查可疑的塗鴉牆',o=>{o.done=true;G.hidOpen=true;openSolid(HPc);sfx('ok');msg('暗門打開了。','var(--am)')},null,{hold:1});
+[[-16,-9.6],[6,-8.2],[6,29.4]].forEach(([x,z],i)=>A(x,z,'clue','閱讀線人留言',o=>{o.done=true;G.cl[i]=true;sfx('pick');msg('線人留言：'+G.pz.clues[i].t,'var(--am)')},i==0?null:()=>G.dl,{i}));
+SPOTS.forEach((s,i)=>A(s.x,s.z,'spot','搜索'+s.n,o=>{o.done=true;if(i==G.pz.r){G.val+=1200;collect('ct_gem');sfx('ok');end(true,'找到失竊的藍寶石');return}G.wrong++;sfx('click');msg(s.n+'裡只有廢紙，不是這裡。','var(--rd)')},i==2?()=>G.dl:i==3?()=>G.dl:i==5?()=>G.hidOpen:null,{hold:1.2,i}));
+A(-22,41,'intel','取得隱藏情報',o=>{o.done=true;G.hid=true;G.val+=600;collect('ct_intel');sfx('ok');msg('取得隱藏情報文件（價值 600）','var(--am)')},()=>G.hidOpen);
+return{ia,near:()=>nearIn(ia),hud:()=>'',reset(){const D=baseReset(-34,0,-Math.PI/2,1.4);Object.assign(G,{pz:genSpot(),cl:[false,false,false],card:false,dl:false,hidOpen:false,hid:false,wrong:0});restore([DL,HPc]);hpad.visible=false;ia.forEach(o=>o.done=false);spawnList(D,[[-24,0],[4,3],[-10,-3]].slice(0,diff=='easy'?1:diff=='normal'?2:3));buildLoadout()},
+step(dt,tg){G.inv=Math.max(0,G.inv-dt);animStep(dt);const z=P.z>34.5?'隱藏情報室':P.z>19&&P.x<0?'地下通道':P.z>19?'屋頂':P.x<0?'城市街道':'商業大樓';if(z!=G.zone){G.zone=z;msg('進入：'+z,'var(--am)')}G.obj=diff=='hard'?null:ia.find(o=>o.k=='clue'&&!o.done&&(!o.av||o.av()));return doHold(tg,dt)},
+ob(){return '<b style="color:var(--bl)">尋找失竊寶物</b><br>'+G.pz.clues.map((c,i)=>G.cl[i]?'✓ '+c.t:'□ 線人留言 '+(i+1)+'（？）').join('<br>')+'<br><span class="mu">搜索過的地點：'+G.wrong+'・只有 1 處是真的</span>'},
+stars(){return 1+(G.wrong<=1?1:0)+(G.hid?1:0)},sum(){return '搜錯 '+G.wrong+' 處，隱藏情報 '+(G.hid?'已取得':'未發現')}}}
+/* ---- 神秘荒野｜破關挑戰 ---- */
+const PK_ITEMS=[['canteen','水壺（飲水消耗減半）'],['torch','火把（洞穴照明）'],['planks','木板（修復石橋）'],['rope','繩索（拉繩渡河）']];
+let PICK=null;
+function openPick(){const cap=diff=='hard'?2:diff=='normal'?3:4;PICK={cap,sel:[0,0,0,0]};ovOpen('補給帳篷：整理背包');$('cq').textContent='背包容量 '+cap+' 格，選擇要帶的物品';$('cf').innerHTML='<div>• 洞穴很暗，沒有火把看不見壁畫</div><div>• 過河要有木板（修橋）或繩索（拉繩）</div><div>• 水壺可減少口渴；森林北邊與營地有水源</div>';pickDraw()}
+function pickDraw(){$('cb').innerHTML='';PICK.sel.forEach((v,i)=>{const b=ovBtn((v?'✔ ':'')+PK_ITEMS[i][1],()=>{if(!PICK.sel[i]&&PICK.sel.reduce((a,c)=>a+c,0)>=PICK.cap){$('cm').textContent='背包已滿（容量 '+PICK.cap+'）';sfx('bad');return}PICK.sel[i]^=1;sfx('click');pickDraw()});if(v)b.style.background='#1f6a7a'});ovBtn('帶上這些，出發',pickOk)}
+function pickOk(){const s=PICK.sel;G.pk={canteen:s[0],torch:s[1],planks:s[2],rope:s[3]};G.packed=true;if(G.stage<2)G.stage=2;PICK=null;ovClose();sfx('ok');msg('背包整理好了：'+PK_ITEMS.filter((_,i)=>s[i]).map(x=>x[1].split('（')[0]).join('、')+'。缺什麼可以回帳篷重新整理。','var(--ol)')}
+function wildStage(){const ia=[],A=mkIA(ia);
+A(-1,-5,'tent','整理背包（補給帳篷）',o=>openPick());
+A(-20,-16,'spring','補充飲水',o=>{G.water=100;sfx('ok');msg('水壺補滿了。','var(--bl)')},null,{hold:1.2});
+A(23,0,'bridge','修復石橋',o=>{if(!G.pk.planks){msg('需要木板才能修橋。可以回帳篷重新整理背包。');sfx('click');return}o.done=true;G.bridge=true;const a=WALLS.indexOf(BR.m);if(a>=0)WALLS.splice(a,1);const b=COL.indexOf(BR.col);if(b>=0)COL.splice(b,1);deck.visible=true;if(G.stage<3)G.stage=3;sfx('ok');msg('石橋修好了。','var(--ol)')},()=>!G.bridge&&G.packed,{hold:1.5});
+A(22.6,-12,'rope','用繩索渡河',o=>{if(!G.pk.rope){msg('需要繩索才能渡河。可以回帳篷重新整理背包。');sfx('click');return}tp(29.6,-12,-Math.PI/2);if(G.stage<3)G.stage=3;sfx('ok');msg('拉繩渡河成功。','var(--ol)')},()=>G.packed,{hold:1.2});
+A(29.6,-12,'rope2','用繩索渡回西岸',o=>{tp(22.6,-12,Math.PI/2)},()=>G.pk&&G.pk.rope);
+A(38,-9,'mural','閱讀洞穴壁畫',o=>{if(!G.pk.torch){msg('洞穴太暗，看不清壁畫。需要火把（可回帳篷重新整理背包）。');sfx('click');return}o.done=true;G.mural=true;sfx('pick');msg('壁畫：先踏「'+G.seqN[0]+'」，再「'+G.seqN[1]+'」，最後「'+G.seqN[2]+'」。','var(--am)')},()=>G.packed);
+A(46,-9.2,'niche','檢查龜裂的岩壁',o=>{o.done=true;G.hid=true;G.val+=800;collect('wl_hid');sfx('ok');msg('岩壁後有暗格！取得寶箱（價值 800）','var(--am)')},()=>G.mural,{hold:2});
+A(57,0,'idol','取走黃金神像',o=>{o.done=true;G.idol=true;idol.visible=false;G.val+=1500;collect('wl_idol');exR.visible=true;sfx('bad');msg('神像到手！遺跡開始震動——回到登山口！','var(--rd)')},()=>G.gate,{hold:2.5});
+const storms=()=>diff=='hard'?[[50,85],[170,205]]:[[60,85],[180,205]];
+return{ia,near:()=>nearIn(ia),hud:rel,
+reset(){const D=baseReset(-36,0,-Math.PI/2,.9);Object.assign(G,{stage:1,packed:false,pk:{canteen:0,torch:0,planks:0,rope:0},bridge:false,mural:false,gate:false,idol:false,hid:false,water:100,warn:0,seq:[0,1,2].sort(()=>Math.random()-.5),pl:0,hit:0});G.seqN=G.seq.map(i=>CPL[i].n);
+restore([GR]);BR.m.visible=true;if(!WALLS.includes(BR.m)){WALLS.push(BR.m);COL.push(BR.col)}deck.visible=false;ia.forEach(o=>o.done=false);exR.visible=false;idol.visible=true;CPL.forEach(c=>{c.m.material.emissive.setHex(0);c.was=false});chM.forEach(m=>m.visible=false);sc.fog.far=WG[4].ff;buildLoadout()},
+step(dt,tg){G.inv=Math.max(0,G.inv-dt);animStep(dt);const f=diff=='hard'?1.5:diff=='normal'?1.2:1;G.water=Math.max(0,G.water-dt*(G.pk.canteen?.06:.14)*f);if(G.water<=0&&!G.inv){G.inv=1;G.hit++;hurt(2)}
+let storm=false;for(const[a,b]of storms()){if(G.el>a-10&&G.el<a&&G.warn!=a){G.warn=a;msg('遠方烏雲聚集——約 10 秒後起霧，視野會變差。','var(--am)')}if(G.el>=a&&G.el<b)storm=true}
+sc.fog.far=storm?14:P.x>33?(G.pk.torch?24:7):WG[4].ff;
+CPL.forEach((c,i)=>{const on=Math.hypot(P.x-c.x,P.z-c.z)<1.15;if(on&&!c.was&&G.mural&&!G.gate){if(G.seq[G.pl]==i){G.pl++;c.m.material.emissive.setHex(c.c);sfx('ok');if(G.pl>=3){G.gate=true;G.stage=4;openSolid(GR);msg('水晶全部亮起，遺跡之門開啟！','var(--ol)')}else msg('水晶亮起 '+G.pl+'／3','var(--bl)')}else{G.pl=0;CPL.forEach(q=>q.m.material.emissive.setHex(0));G.hit++;sfx('bad');msg('石塊掉落！（-10）順序不對，請回想壁畫。','var(--rd)');hurt(10)}}c.was=on});
+G.obj=diff=='hard'?null:!G.packed?{x:-1,z:-5}:!G.bridge&&P.x<24?{x:23,z:0}:!G.mural?{x:38,z:-9}:!G.gate?CPL[G.seq[G.pl]]:!G.idol?{x:57,z:0}:{x:-36,z:0};
+const r=doHold(tg,dt);if(G.idol&&Math.hypot(P.x+36,P.z)<2){end(true,'帶著神像安全離開');return['',0]}return r},
+ob(){const e=diff!='hard';return '<b style="color:var(--bl)">連續野外挑戰</b><br>'+pn(G.packed,'①到帳篷整理背包（容量有限）')+'<br>'+pn(G.bridge||G.stage>=3,'②'+(G.pk.rope&&!G.pk.planks?'繩索':'橋或繩索')+'過河')+'<br>'+pn(G.gate,'③洞穴：壁畫＋水晶順序')+'<br>'+pn(G.idol,'④取得神像並回登山口')+'<br><b style="color:var(--am)">飲水</b> '+Math.round(G.water)+'%'+(e&&G.water<30?' <span class="mu">（可用水壺補水）</span>':'')},
+stars(){return 1+(G.hid?1:0)+(G.t>DIFF[diff].time*.9*.35?1:0)},sum(){return '飲水剩 '+Math.round(G.water)+'%，隱藏暗格 '+(G.hid?'已取得':'未發現')}}}
+Object.assign(MISS,{'0:mystery':milMystery(),'0:stage':milStage(),'1:mystery':labMystery(),'1:stage':labStage(),'2:treasure':ruinTreasure(),'2:stage':ruinStage(),'3:treasure':cityTreasure(),'4:stage':wildStage()});
+['0:mystery','0:stage','1:mystery','1:stage','2:treasure','2:stage','3:treasure','4:stage'].forEach(k=>IMPL.add(k));
+function resetRun(){MS=MISS[SV.sel.wd+':'+SV.sel.md]||null;WD=MS?SV.sel.wd:SV.sel.wd==1&&SV.sel.md=='extract'?1:SV.sel.wd==2&&SV.sel.md=='explore'?2:0;useWorld(WD);if(MS)MS.reset();else if(WD==2)resetRuins();else if(WD==1)resetLab();else resetRun1()}
+/* ---------- 角色／武器／造型資料 ---------- */
+const CHARS=[
+{n:'黑曜',en:'OBSIDIAN・突擊兵',intro:'沉著果斷的突擊手，目光銳利。能力均衡，攜帶彈藥多一成。',skin:0xe0b48c,css:'#e0b48c',hair:0x0b0b0d,hc:'#0b0b0d',w:1,brow:3.4,stub:1,hp:100,spd:1,rl:1,rc:1,am:1.1,st:[['生命',.8],['機動',.7],['穩定',.7],['補給',.85]]},
+{n:'獵鷹',en:'FALCON・偵察兵',intro:'行動輕巧的偵察專家，移動快、換彈快，但防護較薄。',skin:0xeac5a3,css:'#eac5a3',hair:0x1c1511,hc:'#1c1511',w:.88,brow:2.6,stub:0,hp:90,spd:1.1,rl:.85,rc:1,am:1,st:[['生命',.6],['機動',.95],['穩定',.6],['換彈',.9]]},
+{n:'壁壘',en:'BULWARK・重裝兵',intro:'身形壯碩的重裝兵，生命高、後座力小，但移動慢、換彈久。',skin:0xa9764f,css:'#a9764f',hair:0x2a2420,hc:'#2a2420',w:1.2,brow:4,stub:2,hp:125,spd:.92,rl:1.15,rc:.8,am:1,st:[['生命',1],['機動',.55],['穩定',.95],['換彈',.55]]}];
+const WB={sa:.004,sh:.012,sm:.012,sk:.01,ht:.15,rc:.005,kk:.06,rl:1.7,fov:55,rs:1,pk:40,sl:.12,sd:3,sg:.3},WX=o=>Object.assign({},WB,o);
+const WEAPONS=[
+WX({n:'AR-7 突擊步槍',d:'均衡・全自動',mag:30,cd:.11,dmg:22,st:[.6,.6,.6,.6]}),
+WX({n:'DM-9 精準步槍',d:'高傷害・慢射速・遠距離',mag:10,cd:.55,dmg:55,sa:.0008,sh:.014,sm:.02,sk:.005,ht:.4,rc:.02,kk:.14,rl:2.2,fov:34,rs:.3,pk:12,sl:.32,sd:2,sg:.45,st:[1,.25,.5,1]}),
+WX({n:'SM-5 衝鋒槍',d:'高射速・近距離',mag:40,cd:.065,dmg:13,sa:.008,sh:.02,sm:.014,sk:.02,ht:.08,rc:.0035,kk:.04,rl:1.5,fov:62,rs:1.3,pk:50,sl:.07,sg:.22,st:[.35,1,.45,.35]}),
+WX({n:'HG-1 戰術手槍',d:'輕巧・換彈快・中近距離',mag:12,cd:.2,dmg:20,sa:.003,sh:.01,sm:.008,sk:.02,ht:.12,rc:.008,kk:.04,rl:1.1,fov:62,rs:2,pk:24,sl:.08,sg:.2,st:[.4,.4,.7,.35]}),
+WX({n:'SG-12 散彈槍',d:'一次 7 發彈丸・近距離爆發',mag:6,cd:.85,dmg:9,pel:7,sa:.03,sh:.045,sm:.05,sk:.01,ht:.5,rc:.02,kk:.15,rl:2.4,fov:60,rs:.5,pk:8,sl:.25,sd:2.2,sg:.5,st:[.9,.2,.2,.15]}),
+WX({n:'SR-X 狙擊槍',d:'一擊重傷・極遠距離',mag:5,cd:1.2,dmg:120,sa:.0003,sh:.02,sm:.03,sk:.005,ht:.5,rc:.03,kk:.2,rl:2.8,fov:22,rs:.18,pk:6,sl:.4,sd:1.8,sg:.55,st:[1,.1,.6,1]}),
+WX({n:'LM-8 輕機槍',d:'大彈匣・壓制火力・換彈慢',mag:60,cd:.085,dmg:16,sa:.006,sh:.016,sm:.02,sk:.02,ht:.1,rc:.007,kk:.07,rl:3.4,fov:58,rs:1.5,pk:60,sl:.13,sd:2.8,sg:.34,st:[.55,.8,.35,.6]}),
+WX({n:'EN-3 能量槍',d:'低後座・準度高・聲音小',mag:24,cd:.14,dmg:17,sa:.002,sh:.006,sm:.008,sk:.006,ht:.1,rc:.002,kk:.02,rl:.9,fov:56,rs:1.2,pk:24,sl:.16,sd:4,sg:.16,st:[.5,.65,.9,.7]}),
+WX({n:'EM-X 電磁發射器',d:'貫穿直線上所有敵人',mag:3,cd:1.4,dmg:70,prc:1,sa:.001,sh:.012,sm:.02,sk:.005,ht:.6,rc:.02,kk:.18,rl:2.6,fov:40,rs:.15,pk:3,sl:.3,sd:2.5,sg:.4,st:[.95,.15,.7,1]}),
+WX({n:'CB-1 探索弩',d:'無聲・不會驚動守衛',mag:1,cd:.9,dmg:55,sil:1,sa:.002,sh:.008,sm:.01,sk:.004,ht:.3,rc:.012,kk:.1,rl:1.1,fov:45,rs:8,pk:8,sl:.06,sd:4,sg:.07,st:[.6,.2,.9,.7]}),
+WX({n:'SH-1 護盾裝置',d:'工具・啟動後 3 秒內受傷 −60%（冷卻 10 秒）',tool:'shield',cd:10,mag:1,rs:0,fov:70}),
+WX({n:'SC-1 探索掃描儀',d:'工具・6 秒顯示敵人與可互動物件（冷卻 12 秒）',tool:'scan',cd:12,mag:1,rs:0,fov:70})];
+const OUTF=[
+{n:'黑色特勤作戰服',d:'預設・低調的夜戰裝備',need:0,suit:0x1b1f22,vest:0x2a3033,acc:0x7d8f45,glove:0x0f1112,pack:0x20262a},
+{n:'沙漠戰術裝備',d:'',need:1,suit:0x8a7a55,vest:0x6e6140,acc:0xb39a64,glove:0x4d3f26,pack:0x7b6a45},
+{n:'未來科技作戰服',d:'',need:3,suit:0x1f2d38,vest:0x16202a,acc:0x4fc3ff,glow:1,glove:0x0c1319,pack:0x24384a}];
+const outfitOK=i=>SV.wins>=OUTF[i].need,selOI=()=>outfitOK(SV.sel.o)?SV.sel.o:0;
+let gun=null,MF=null,PM=null,TPS=false,TD=3,OI=0,CH=CHARS[0],WP=WEAPONS[0];
+const disp=o=>{if(o)o.traverse(c=>{if(c.geometry)c.geometry.dispose()})};
+function mkGunModel(w,fp){const g=new T.Group(),Mt=c=>new T.MeshLambertMaterial({color:c}),X=(a,b,c,x,y,z,col,e,ry)=>{const m=new T.Mesh(new T.BoxGeometry(a,b,c),e?new T.MeshBasicMaterial({color:col}):Mt(col));m.position.set(x,y,z);if(ry)m.rotation.y=ry;g.add(m);return m};let mz=-.6;
+if(w==0){X(.07,.09,.55,0,0,0,0x1c2224);X(.04,.04,.3,0,.01,-.4,0x0e1213);X(.06,.16,.08,0,-.11,.12,0x1c2224);X(.05,.1,.16,0,-.06,-.1,0x2d3a2a);X(.05,.18,.07,0,-.12,-.05,0x14181a);X(.02,.02,.4,0,.06,-.05,0xffa726,1)}
+else if(w==1){mz=-.9;X(.065,.085,.8,0,0,0,0x1a2022);X(.032,.032,.55,0,.005,-.62,0x0d1011);X(.055,.14,.08,0,-.1,.18,0x1a2022);X(.055,.1,.3,0,-.03,.5,0x2a2f26);X(.055,.055,.3,0,.085,-.08,0x0f1314);X(.04,.04,.012,0,.085,-.24,0x4fc3ff,1);X(.045,.14,.06,0,-.1,-.02,0x14181a)}
+else if(w==2){mz=-.4;X(.07,.1,.36,0,0,0,0x23292b);X(.032,.032,.16,0,.01,-.26,0x0d1011);X(.05,.3,.07,0,-.2,0,0x14181a);X(.06,.15,.08,0,-.11,.12,0x23292b);X(.05,.07,.18,0,0,.28,0x3a4036);X(.02,.02,.2,0,.06,-.02,0x4fc3ff,1)}
+else if(w==3){mz=-.28;X(.05,.08,.28,0,0,0,0x1c2224);X(.03,.03,.1,0,.01,-.2,0x0d1011);X(.05,.14,.07,0,-.1,.08,0x14181a);X(.02,.02,.1,0,.05,-.08,0xffa726,1)}
+else if(w==4){mz=-.8;X(.07,.09,.55,0,0,0,0x2a2218);X(.06,.06,.6,0,.01,-.5,0x14181a);X(.07,.07,.2,0,-.05,-.25,0x4a3a22);X(.06,.14,.08,0,-.1,.2,0x2a2218);X(.05,.1,.3,0,-.02,.45,0x3a3020)}
+else if(w==5){mz=-1.1;X(.06,.08,.9,0,0,0,0x1a2022);X(.03,.03,.7,0,.005,-.75,0x0d1011);X(.07,.07,.35,0,.09,-.1,0x0f1314);X(.05,.05,.02,0,.09,-.28,0x4fc3ff,1);X(.06,.1,.3,0,-.02,.55,0x2a2f26);X(.05,.14,.07,0,-.1,.2,0x14181a)}
+else if(w==6){mz=-.85;X(.08,.1,.7,0,0,0,0x23292b);X(.035,.035,.45,0,.01,-.55,0x0d1011);X(.14,.16,.16,0,-.13,0,0x2a3a2a);X(.05,.14,.07,0,-.11,.2,0x14181a);X(.05,.08,.3,0,0,.5,0x3a4036)}
+else if(w==7){mz=-.7;X(.07,.09,.55,0,0,0,0xdfe6e8);X(.04,.04,.3,0,.01,-.4,0x4fc3ff,1);X(.06,.12,.12,0,-.07,.05,0x4fc3ff,1);X(.05,.14,.07,0,-.11,.2,0x9aa6a9)}
+else if(w==8){mz=-.95;X(.08,.1,.8,0,0,0,0x1b2128);X(.02,.05,.7,.05,0,-.5,0xa070ff,1);X(.02,.05,.7,-.05,0,-.5,0xa070ff,1);X(.1,.1,.2,0,-.02,.25,0x262e36);X(.05,.14,.07,0,-.11,.15,0x14181a)}
+else if(w==9){mz=-.5;X(.05,.08,.5,0,0,0,0x3a3020);X(.5,.03,.04,0,.02,-.35,0x14181a);X(.02,.02,.4,0,.05,-.2,0xffa726,1);X(.05,.12,.07,0,-.09,.1,0x2a2218)}
+else if(w==10){mz=-.3;X(.18,.18,.04,0,0,-.15,0x4fc3ff,1);X(.2,.2,.06,0,0,-.12,0x1c2a30);X(.06,.1,.12,0,-.1,0,0x14181a)}
+else{mz=-.3;X(.14,.24,.03,0,.03,-.1,0x1c2a30);X(.11,.18,.02,0,.03,-.08,0x6bff8a,1);X(.015,.2,.015,.06,.2,-.1,0x14181a);X(.06,.1,.1,0,-.1,.02,0x14181a)}
+const mf=new T.Mesh(new T.BoxGeometry(.07,.07,.1),new T.MeshBasicMaterial({color:0xffc060}));mf.position.set(0,.01,mz);mf.visible=false;g.add(mf);
+if(fp){const O=OUTF[OI],gz=w==1?-.3:w==2?-.12:-.2;X(.09,.09,.34,.07,-.15,.3,O.suit);X(.095,.095,.03,.07,-.15,.13,O.acc);X(.075,.08,.1,.015,-.1,.12,O.glove);X(.09,.09,.4,-.1,-.1,gz+.2,O.suit,0,.3);X(.095,.095,.03,-.08,-.1,gz,O.acc,0,.3);X(.075,.08,.1,-.03,-.04,gz-.04,O.glove)}
+return{g,mf}}
+const FT={};function faceMat(ci){if(FT[ci])return FT[ci];const C=CHARS[ci],c=document.createElement('canvas');c.width=64;c.height=80;const x=c.getContext('2d');
+x.save();x.beginPath();x.ellipse(32,40,29,38,0,0,7);x.clip();x.fillStyle=C.css;x.fillRect(0,0,64,80);
+const gr=x.createLinearGradient(0,36,0,80);gr.addColorStop(0,'rgba(0,0,0,0)');gr.addColorStop(1,'rgba(50,25,10,.42)');x.fillStyle=gr;x.fillRect(0,0,64,80);
+x.fillStyle='rgba(0,0,0,.12)';x.fillRect(0,0,6,80);x.fillRect(58,0,6,80);
+if(C.stub){x.fillStyle='rgba(15,12,10,'+(.12+C.stub*.1)+')';x.fillRect(0,54,64,26);x.fillRect(0,48,64,6)}
+x.fillStyle=C.hc;x.beginPath();x.moveTo(0,0);x.lineTo(64,0);x.lineTo(64,17);x.quadraticCurveTo(32,7,0,17);x.fill();
+x.lineCap='round';x.strokeStyle='#120e0b';x.lineWidth=C.brow;x.beginPath();x.moveTo(10,30);x.lineTo(27,26);x.moveTo(54,30);x.lineTo(37,26);x.stroke();
+[[19,36],[45,36]].forEach(([a,b])=>{x.fillStyle='#efe8de';x.beginPath();x.ellipse(a,b,7,3.2,0,0,7);x.fill();x.fillStyle='#1a120d';x.beginPath();x.arc(a,b,2.9,0,7);x.fill();x.strokeStyle='#120e0b';x.lineWidth=1.6;x.beginPath();x.moveTo(a-8,b);x.quadraticCurveTo(a,b-5.5,a+8,b);x.stroke()});
+x.strokeStyle='rgba(70,40,22,.55)';x.lineWidth=2;x.beginPath();x.moveTo(32,36);x.lineTo(30,51);x.lineTo(35,53);x.stroke();
+x.strokeStyle='#4f2a22';x.lineWidth=2.4;x.beginPath();x.moveTo(24,63);x.quadraticCurveTo(32,65,40,63);x.stroke();x.restore();
+return FT[ci]=new T.MeshLambertMaterial({map:new T.CanvasTexture(c),transparent:true,alphaTest:.05})}
+function mkHuman(ci,oi,wi){const C=CHARS[ci],O=OUTF[oi],k=C.w,g=new T.Group(),L=c=>new T.MeshLambertMaterial({color:c}),A=O.glow?new T.MeshBasicMaterial({color:O.acc}):L(O.acc),sk=L(C.skin),su=L(O.suit),ve=L(O.vest),gl=L(O.glove),dk=L(0x14181a),hr=L(C.hair),pk=L(O.pack);
+const B=(w,h,d,mt,x,y,z,p)=>{const m=new T.Mesh(new T.BoxGeometry(w,h,d),mt);m.position.set(x,y,z);(p||g).add(m);return m};
+const leg=x=>{const p=new T.Group();p.position.set(x*k,.95,0);g.add(p);B(.2*k,.48,.23,su,0,-.24,0,p);B(.21*k,.07,.24,ve,0,-.5,-.01,p);const s=new T.Group();s.position.set(0,-.48,0);p.add(s);B(.17*k,.44,.2,su,0,-.22,0,s);B(.2*k,.11,.32,dk,0,-.45,-.05,s);return p};
+const legs=[leg(-.12),leg(.12)];
+B(.4*k,.16,.26,su,0,1,0);B(.42*k,.05,.28,A,0,1.05,0);B(.5*k,.5,.28,su,0,1.3,0);B(.55*k,.44,.33,ve,0,1.32,0);B(.34*k,.1,.03,A,0,1.42,-.18);B(.1,.12,.04,dk,-.14*k,1.24,-.18);B(.1,.12,.04,dk,.14*k,1.24,-.18);B(.12,.1,.12,sk,0,1.6,0);
+[-1,1].forEach(s=>B((ci==2?.22:.16)*k,.12,.2,ve,s*.31*k,1.52,0));
+if(oi==1){B(.38*k,.46,.2,pk,0,1.34,.27);B(.3*k,.12,.14,L(0x5a4a2e),0,1.62,.3);B(.07,.16,.07,L(0x4d5a35),-.2*k,1.1,-.14)}else if(oi==2){B(.3*k,.5,.14,pk,0,1.34,.24);B(.03,.44,.02,A,0,1.34,.32)}else B(.32*k,.38,.16,pk,0,1.34,.24);
+const hd=new T.Mesh(new T.SphereGeometry(.125,16,12),sk);hd.scale.set(.92,1.12,1);hd.position.y=1.72;g.add(hd);
+const fc=new T.Mesh(new T.PlaneGeometry(.2,.25),faceMat(ci));fc.position.set(0,1.72,-.153);fc.rotation.y=Math.PI;g.add(fc);
+const hc=new T.Mesh(new T.SphereGeometry(.132,16,10,0,Math.PI*2,0,Math.PI*.45),hr);hc.scale.set(.95,1.14,1.04);hc.position.set(0,1.73,.01);g.add(hc);if(ci==1)B(.2,.12,.07,hr,0,1.7,.11);
+if(oi==0){B(.04,.1,.07,dk,-.125,1.72,0);B(.04,.1,.07,dk,.125,1.72,0);B(.015,.015,.14,dk,.115,1.65,-.07)}
+else if(oi==1){const m=L(0x8a7a55),br=new T.Mesh(new T.CylinderGeometry(.25,.25,.012,20),m);br.position.y=1.835;g.add(br);const cr=new T.Mesh(new T.CylinderGeometry(.14,.16,.09,16),m);cr.position.y=1.88;g.add(cr);B(.2,.045,.04,dk,0,1.8,-.145);B(.17,.03,.012,new T.MeshBasicMaterial({color:0xffa726}),0,1.8,-.168)}
+else{const sh=new T.Mesh(new T.SphereGeometry(.14,16,10,0,Math.PI*2,0,Math.PI*.48),L(0x1f2d38));sh.scale.set(.98,1.1,1.06);sh.position.set(0,1.735,.01);g.add(sh);B(.22,.016,.02,A,0,1.82,-.14);B(.2,.03,.03,A,0,1.785,-.15)}
+const aim=new T.Group();aim.position.set(0,1.42,0);g.add(aim);
+const arm=(s,ry)=>{const p=new T.Group();p.position.set(s*.31*k,0,0);p.rotation.set(1.3,ry,0);aim.add(p);B(.14*k,.3,.15,su,0,-.15,0,p);B(.15*k,.06,.16,ve,0,-.02,0,p);const e=new T.Group();e.position.set(0,-.3,0);p.add(e);B(.12*k,.28,.13,su,0,-.14,0,e);B(.11,.11,.12,gl,0,-.33,0,e)};arm(1,.25);arm(-1,-.5);
+const gm=mkGunModel(wi,false);gm.g.scale.setScalar(1.45);gm.g.position.set(.1*k,-.17,-.48);aim.add(gm.g);
+g.userData={legs,aim,mf:gm.mf};return g}
+/* ---------- 大廳 3D 展示場景 ---------- */
+PS.background=new T.Color(0x070b0d);PS.fog=new T.Fog(0x070b0d,7,18);
+PS.add(new T.HemisphereLight(0x8fb4d0,0x1a1c12,.75));const pKey=new T.DirectionalLight(0xffe2bd,1.05);pKey.position.set(-2,3,-3);PS.add(pKey);const pRim=new T.DirectionalLight(0x4fc3ff,1.3);pRim.position.set(3,2.5,4);PS.add(pRim);
+{const f=new T.Mesh(new T.CylinderGeometry(1.5,1.7,.1,40),new T.MeshLambertMaterial({color:0x141a1c}));f.position.y=-.02;PS.add(f)}
+const ringM=new T.Mesh(new T.RingGeometry(1.15,1.2,48),new T.MeshBasicMaterial({color:0x4fc3ff,side:T.DoubleSide}));ringM.rotation.x=-Math.PI/2;ringM.position.y=.04;PS.add(ringM);
+const ring2=new T.Mesh(new T.RingGeometry(1.36,1.39,48),new T.MeshBasicMaterial({color:0xffa726,transparent:true,opacity:.7,side:T.DoubleSide}));ring2.rotation.x=-Math.PI/2;ring2.position.y=.04;PS.add(ring2);
+const bc=document.createElement('canvas');bc.width=256;bc.height=128;{const x=bc.getContext('2d');x.fillStyle='#0a1013';x.fillRect(0,0,256,128);x.strokeStyle='rgba(79,195,255,.18)';x.lineWidth=1;for(let i=0;i<=256;i+=16){x.beginPath();x.moveTo(i,0);x.lineTo(i,128);x.stroke()}for(let j=0;j<=128;j+=16){x.beginPath();x.moveTo(0,j);x.lineTo(256,j);x.stroke()}x.fillStyle='rgba(255,167,38,.5)';x.fillRect(20,100,70,3);x.fillStyle='rgba(79,195,255,.5)';x.fillRect(170,28,60,3)}
+const bk=new T.Mesh(new T.PlaneGeometry(18,8),new T.MeshBasicMaterial({map:new T.CanvasTexture(bc),fog:false}));bk.position.set(0,3,6);bk.rotation.y=Math.PI;PS.add(bk);
+const PN=80,pg=new T.BufferGeometry(),pa=new Float32Array(PN*3);for(let i=0;i<PN;i++){pa[i*3]=(Math.random()-.5)*7;pa[i*3+1]=Math.random()*3.5;pa[i*3+2]=-1+Math.random()*5}pg.setAttribute('position',new T.BufferAttribute(pa,3));PS.add(new T.Points(pg,new T.PointsMaterial({size:.035,color:0x7fd3ff,transparent:true,opacity:.7})));
+const BODY={p:new T.Vector3(0,1.2,-4.6),l:new T.Vector3(0,.95,0)},FACE={p:new T.Vector3(0,1.74,-1.6),l:new T.Vector3(0,1.7,0)},pl=new T.Vector3(0,.95,0);pcam.position.copy(BODY.p);
+let lobTab=0,pvFace=0,pvY=0,pvDrag=0,pvPop=0,PV=null,tmT;
+function updPV(dt,n){const t=n/1000;if(!pvDrag)pvY*=1-Math.min(1,dt*.7);pvPop*=.9;
+if(PV){const s=1-pvPop*.1;PV.scale.set(s,s+Math.sin(t*1.6)*.004,s);PV.rotation.y=pvY+Math.sin(t*.5)*.22;PV.userData.aim.rotation.x=.45+Math.sin(t*1.6)*.012}
+pRim.intensity=1.25+Math.sin(t*3)*.15+(Math.random()<.02?.7:0);ringM.rotation.z=t*.4;ring2.rotation.z=-t*.2;
+const a=pg.attributes.position.array;for(let i=0;i<PN;i++){a[i*3+1]+=dt*.12;if(a[i*3+1]>3.5)a[i*3+1]=0}pg.attributes.position.needsUpdate=true;
+const g=pvFace?FACE:BODY,q=Math.min(1,dt*4);pcam.position.lerp(g.p,q);pl.lerp(g.l,q);pcam.lookAt(pl)}
+function lt(t){const e=$('lt');e.textContent=t;e.style.opacity=1;clearTimeout(tmT);tmT=setTimeout(()=>e.style.opacity=0,2200)}
+function refreshPreview(){if(PV){PS.remove(PV);disp(PV)}PV=mkHuman(SV.sel.c,selOI(),SV.sel.w);PV.userData.aim.rotation.x=.45;PV.position.y=.05;PS.add(PV);pvPop=1}
+function lobUI(){const C=CHARS[SV.sel.c];$('cn').textContent=C.n;$('ce').textContent=C.en;$('ci').textContent=C.intro;
+$('character-stat-bars').innerHTML=C.st.map(s=>'<div class="sr"><span>'+s[0]+'</span><i><b style="width:'+s[1]*100+'%"></b></i></div>').join('');
+$('t1').classList.toggle('on',lobTab==0);$('t2').classList.toggle('on',lobTab==1);const pw=$('pw');pw.innerHTML='';
+if(lobTab==0){const h=document.createElement('div');h.className='mu';h.style.cssText='font-size:10px;margin-bottom:4px';h.textContent='傷害／射速／穩定／射程';pw.appendChild(h);
+WEAPONS.forEach((w,i)=>{const b=document.createElement('button');b.className='ro'+(i==SV.sel.w?' on':'');b.innerHTML='<b>'+w.n+'</b><small>'+w.d+(w.tool?'':'・彈匣 '+w.mag)+'</small>'+(w.st?'<span>'+w.st.map(s=>'<em><u style="width:'+s*100+'%"></u></em>').join('')+'</span>':'');b.onclick=()=>{SV.sel.w=i;save();sfx('click');refreshPreview();lobUI()};pw.appendChild(b)})}
+else OUTF.forEach((o,i)=>{const ok=outfitOK(i),b=document.createElement('button');b.className='ro'+(ok&&i==selOI()?' on':'');b.innerHTML='<b>'+(ok?'':'🔒 ')+o.n+'</b><small>'+(ok?(o.d||'已解鎖'):'成功撤離 '+o.need+' 次解鎖（目前 '+SV.wins+'）')+'</small>';b.onclick=()=>{if(!ok){sfx('bad');lt('尚未解鎖：成功撤離 '+o.need+' 次');return}SV.sel.o=i;save();sfx('click');refreshPreview();lobUI()};pw.appendChild(b)})}
+const chg=d=>{SV.sel.c=(SV.sel.c+d+3)%3;save();sfx('click');refreshPreview();lobUI()};
+$('cp').onclick=()=>chg(-1);$('cnx').onclick=()=>chg(1);$('t1').onclick=()=>{lobTab=0;lobUI()};$('t2').onclick=()=>{lobTab=1;lobUI()};
+$('fv').onclick=()=>{pvFace^=1;$('fv').textContent=pvFace?'全身':'臉部特寫'};$('mo').onclick=()=>show('more',true);$('mc').onclick=()=>show('more',false);
+{const p=$('pv');let id=null,lx=0;p.addEventListener('pointerdown',e=>{id=e.pointerId;lx=e.clientX;pvDrag=1;try{p.setPointerCapture(id)}catch(x){}});p.addEventListener('pointermove',e=>{if(e.pointerId==id){pvY+=(e.clientX-lx)*.012;lx=e.clientX}});['pointerup','pointercancel','lostpointercapture'].forEach(t=>p.addEventListener(t,e=>{if(e.pointerId==id){id=null;pvDrag=0}}))}
+/* ---------- 世界與玩法選擇 ---------- */
+const MODES=[
+{id:'extract',n:'戰術撤離',d:'搜索物資、擊退守衛、破解門禁後撤離。',ok:1},
+{id:'treasure',n:'尋寶計畫',d:'依線索尋找稀有寶物與隱藏區域。'},
+{id:'explore',n:'探險摸金',d:'尋路、機關與陷阱，不一定要開槍。',ok:1},
+{id:'mystery',n:'推理劇情',d:'蒐集文件與證詞，推理出真相。'},
+{id:'stage',n:'破關挑戰',d:'一關一關升級，依條件通關。'},
+{id:'forge',n:'武器設計',d:'自己組裝、塗裝並命名武器。'}];
+const WORLDS=[
+{n:'軍事禁區',en:'RESTRICTED ZONE',d:'廢棄軍事基地。',ok:1,modes:['extract','mystery','stage'],g:['#2f4223','#0d1410'],tag:'槍戰・撤離'},
+{n:'地下研究所',en:'UNDERGROUND LAB',d:'恢復電力、取得通行證、解開筆記算式的密碼，關閉雷射或避開守衛，下載核心資料後撤離。',ok:1,modes:['extract','mystery','stage'],g:['#14404f','#070f14'],tag:'解謎・戰鬥'},
+{n:'失落遺跡',en:'LOST RUINS',d:'尋找石板、踏對符文、避開尖刺、找出隱藏通道並取得寶藏。',ok:1,modes:['explore','treasure','stage'],g:['#5a4519','#140f06'],tag:'探險・機關'},
+{n:'都市危機',en:'URBAN CRISIS',d:'街道、大樓、屋頂、地下通道與隱藏情報室，可走不同路線。',ok:1,modes:['extract','mystery','treasure'],g:['#2a3358','#0a0c16'],tag:'潛入・追逐'},
+{n:'神秘荒野',en:'WILD FRONTIER',d:'森林、營地、山谷、洞穴與隱藏遺跡，靠羅盤與座標探險。',ok:1,modes:['explore','treasure','stage'],g:['#45361d','#100c08'],tag:'生存・事件'}];
+const mdOf=id=>MODES.find(m=>m.id==id),canPlay=(wi,mid)=>IMPL.has(wi+':'+mid);
+function selUI(){const wl=$('wl'),ml=$('ml');wl.innerHTML='';ml.innerHTML='';
+WORLDS.forEach((w,i)=>{const b=document.createElement('button'),r=SV.wr[i+':'+SV.sel.md];b.className='wc'+(i==SV.sel.wd?' on':'');b.style.background='linear-gradient(160deg,'+w.g[0]+','+w.g[1]+')';
+b.innerHTML='<i class="bd'+(w.ok?' ok':'')+'">'+(w.ok?'可遊玩':'開發中')+'</i><b>'+w.n+'</b><small>'+w.en+'</small><span>'+w.tag+'</span>'+(r?'<em>成功 '+r.wins+'／'+r.runs+'・'+'★'.repeat(r.stars||0)+'・最佳 '+r.best+'</em>':'');
+b.onclick=()=>{SV.sel.wd=i;const pm=MODES.find(m=>IMPL.has(i+':'+m.id));if(pm&&!IMPL.has(i+':'+SV.sel.md))SV.sel.md=pm.id;save();sfx('click');selUI()};wl.appendChild(b)});
+const W0=WORLDS[SV.sel.wd];
+MODES.forEach(m=>{const b=document.createElement('button'),inW=W0.modes.includes(m.id);b.className='mc2'+(m.id==SV.sel.md?' on':'')+(IMPL.has(SV.sel.wd+':'+m.id)?'':' dim');
+b.innerHTML='<b>'+m.n+'</b><small>'+(IMPL.has(SV.sel.wd+':'+m.id)?'可玩':inW?'開發中':'此世界不適用')+'</small>';b.onclick=()=>{SV.sel.md=m.id;save();sfx('click');selUI()};ml.appendChild(b)});
+const m=mdOf(SV.sel.md),ok=canPlay(SV.sel.wd,m.id);
+$('sbrief').innerHTML='<b>'+W0.n+'・'+m.n+'</b><br><span class="mu">'+(ok?W0.d+m.d:W0.modes.includes(m.id)?'這個玩法在「'+W0.n+'」還在開發中。':'此世界沒有這個玩法。')+'</span>';
+$('sgo').disabled=!ok;$('sgo').textContent=ok?'出發':'尚未開放';ui()}
+$('sx').onclick=()=>{show('sel',false);ui()};$('sgo').onclick=()=>{if(canPlay(SV.sel.wd,SV.sel.md))start()};
+/* ---------- 戰鬥中：視角、鏡頭、人物模型 ---------- */
+function buildLoadout(){if(gun){cam.remove(gun);disp(gun)}const r=mkGunModel(WEAPONS.indexOf(WP),true);gun=r.g;MF=r.mf;gun.visible=!TPS;cam.add(gun);if(PM){sc.remove(PM);disp(PM)}PM=mkHuman(SV.sel.c,OI,WEAPONS.indexOf(WP));PM.visible=false;sc.add(PM)}
+function toggleView(){if(state!='play')return;TPS=!TPS;SV.sel.v=TPS?1:0;save();gun.visible=!TPS;sfx('click');msg(TPS?'第三人稱':'第一人稱')}
+function flash(){const f=TPS?PM.userData.mf:MF;f.visible=true;setTimeout(()=>{f.visible=false},45)}
+function placeCam(b){cam.rotation.set(P.pitch,P.yaw,0);
+if(!TPS)cam.position.set(P.x,1.6+b,P.z);
+else{const cp=Math.cos(P.pitch),f=new T.Vector3(-Math.sin(P.yaw)*cp,Math.sin(P.pitch),-Math.cos(P.yaw)*cp),sd=.65-.25*W.ads,want=2.9-1.2*W.ads,d=new T.Vector3(-f.x*want+Math.cos(P.yaw)*sd,-f.y*want+.2,-f.z*want-Math.sin(P.yaw)*sd),len=d.length();d.divideScalar(len);
+const hy=1.55;rcL.set(new T.Vector3(P.x,hy,P.z),d);rcL.far=len;const h=rcL.intersectObjects(WALLS,false)[0];TD=h?Math.max(.4,h.distance-.25):len;cam.position.set(P.x+d.x*TD,Math.max(.3,hy+d.y*TD),P.z+d.z*TD)}
+cam.updateMatrixWorld()}
+function updPM(dt,l){PM.visible=TPS&&TD>.9;if(!PM.visible)return;const u=PM.userData;u.ph=(u.ph||0)+dt*8*CH.spd;const m=Math.min(1,l),s=Math.sin(u.ph)*.7*m;u.legs[0].rotation.x=s;u.legs[1].rotation.x=-s;u.aim.rotation.x=P.pitch*.9;PM.position.set(P.x,Math.abs(Math.sin(u.ph))*.03*m,P.z);PM.rotation.y=P.yaw}
+
+/* ---------- 物理與視線 ---------- */
+function move(o,dx,dz,r){o.x+=dx;o.z+=dz;for(const c of COL){const cx=Math.max(c.x0,Math.min(o.x,c.x1)),cz=Math.max(c.z0,Math.min(o.z,c.z1)),ex=o.x-cx,ez=o.z-cz,d2=ex*ex+ez*ez;
+if(d2<r*r){if(d2>1e-6){const d=Math.sqrt(d2),p=r-d;o.x+=ex/d*p;o.z+=ez/d*p}else{const l=o.x-c.x0,rr=c.x1-o.x,t=o.z-c.z0,b=c.z1-o.z,m=Math.min(l,rr,t,b);if(m==l)o.x=c.x0-r;else if(m==rr)o.x=c.x1+r;else if(m==t)o.z=c.z0-r;else o.z=c.z1+r}}}
+o.x=Math.max(BND[0],Math.min(BND[1],o.x));o.z=Math.max(BND[2],Math.min(BND[3],o.z))}
+const rcL=new T.Raycaster(),rcP=new T.Raycaster(),rcA=new T.Raycaster(),V0=new T.Vector2(0,0),LK={x:0,y:0};rcP.far=80;
+function sph(o,d,cx,cy,cz,r){const ox=cx-o.x,oy=cy-o.y,oz=cz-o.z,t=ox*d.x+oy*d.y+oz*d.z;if(t<0)return -1;const q=ox*ox+oy*oy+oz*oz-t*t;if(q>r*r)return -1;return Math.max(0,t-Math.sqrt(r*r-q))}
+function pick(ray,b=0){const o=ray.origin,d=ray.direction;let best=null;for(const e of E){if(e.dead)continue;const h=sph(o,d,e.x,1.72,e.z,.3+b),c=sph(o,d,e.x,1.15,e.z,.5+b),l=sph(o,d,e.x,.5,e.z,.42+b);let t=-1,hd=false;
+if(h>=0){t=h;hd=true}else{for(const v of [c,l])if(v>=0&&(t<0||v<t))t=v}if(t>=0&&(!best||t<best.distance))best={e,distance:t,hd}}return best}
+function applyLook(){const k=.0042*SV.set.sens*(1-.25*W.ads)*(cam.fov/75)*(G.fr||1);let dx=LK.x,dy=LK.y;LK.x=LK.y=0;const m=Math.hypot(dx,dy);if(m>160){dx*=160/m;dy*=160/m}P.yaw-=dx*k;P.pitch=Math.max(-1.4,Math.min(1.4,P.pitch-dy*k))}
+function clear(ax,ay,az,bx,by,bz){const v=new T.Vector3(bx-ax,by-ay,bz-az),d=v.length();rcL.set(new T.Vector3(ax,ay,az),v.normalize());rcL.far=d;return rcL.intersectObjects(WALLS,false).length==0}
+const la=(a,b,t)=>a+(((b-a+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI)*t;
+/* ---------- 遊戲狀態 ---------- */
+let P,W,G,E=[],EP=[],K={},J={x:0,y:0,run:0},fh=0,ah=0,use=0,useP=0,vg=0,msT;
+const HOMES=[[-10,-12],[-10,14],[4,2],[13,-8],[14,14],[0,-25],[-5,25],[18,-22]];
+function mkE(hx,hz,D){const g=new T.Group();g.rotation.order='YXZ';const mV=new T.MeshLambertMaterial({color:0x5a2f28}),mH=new T.MeshLambertMaterial({color:0xc49a7a}),mD=mat(0x20262a),parts=[];
+const e={g,x:hx,z:hz,hx,hz,yaw:Math.random()*6,hp:D.hp,state:'patrol',wp:{x:hx,z:hz},wpT:0,los:false,losT:Math.random()*.25,last:{x:hx,z:hz},cd:1,fl:0,alertT:0,stuck:0,side:1,sideT:0,mfT:0,dead:false,dieT:0,mV,mH,sd:1,sdT:0,parts};
+const a=(w,h,d,m,x,y,z,hd)=>{const me=new T.Mesh(new T.BoxGeometry(w,h,d),m);me.position.set(x,y,z);me.userData={e,head:!!hd};g.add(me);parts.push(me)};
+a(.5,.75,.28,mV,0,1.15,0);a(.4,.75,.26,mD,0,.38,0);a(.26,.28,.26,mH,0,1.7,0,1);a(.28,.1,.28,mD,0,1.88,0,1);a(.1,.12,.6,mD,.24,1.2,-.3);
+const v=new T.Mesh(new T.BoxGeometry(.2,.05,.02),new T.MeshBasicMaterial({color:0xffa726}));v.position.set(0,1.72,-.14);g.add(v);
+e.mf=new T.Mesh(new T.BoxGeometry(.1,.1,.12),new T.MeshBasicMaterial({color:0xffd080}));e.mf.position.set(.24,1.2,-.65);e.mf.visible=false;g.add(e.mf);const bar=new T.Group();bar.position.y=2.25;bar.add(new T.Mesh(new T.BoxGeometry(.74,.1,.03),new T.MeshBasicMaterial({color:0x111111})));const bfm=new T.Mesh(new T.BoxGeometry(.68,.06,.04),new T.MeshBasicMaterial({color:0x6bff8a}));bar.add(bfm);bar.visible=false;g.add(bar);e.bar=bar;e.bf=bfm;e.mx=D.hp;g.position.set(hx,0,hz);sc.add(g);return e}
+function resetRun1(){const D=DIFF[diff];CH=CHARS[SV.sel.c];WP=WEAPONS[SV.sel.w];OI=selOI();TPS=!!SV.sel.v;
+P={x:-26,z:0,yaw:-Math.PI/2,pitch:0,hp:CH.hp,mx:CH.hp,med:1};W={mag:WP.mag,mx:WP.mag,res:Math.round(D.ammo*WP.rs*CH.am),cd:0,rl:0,shots:0,hits:0,heat:0,ads:0,kick:0};
+G={hu:0,at:0,fr:1,t:D.time,el:0,kills:0,val:0,code:[1+rnd(9),1+rnd(9),1+rnd(9)],clues:[null,null,null],door:false,fails:0,ext:0,s:0,items:[]};
+E.forEach(e=>sc.remove(e.g));E=HOMES.slice(0,D.c).map(h=>mkE(h[0],h[1],D));EP=[].concat(...E.map(e=>e.parts));
+const pool=[{k:'med',n:'醫療包'},{k:'ammo',n:'彈藥箱 +40'},{k:'val',n:'加密硬碟',v:800},{k:'val',n:'軍規電池',v:450},{k:'val',n:'精密零件',v:300}].sort(()=>Math.random()-.5),ord=[0,1,2,3,4,5,6,7].sort(()=>Math.random()-.5);
+ord.forEach((li,i)=>{const l=L[li];l.open=false;l.lid.material.color.setHex(0xffa726);l.lid.material.emissive.setHex(0x442600);l.item=i<3?{k:'clue',i}:pool[i-3]});
+if(!WALLS.includes(DOOR.m)){WALLS.push(DOOR.m);COL.push(DOOR.col)}DOOR.m.position.y=2;DOOR.m.visible=true;EXT.visible=false;kv='';
+cam.fov=75;cam.updateProjectionMatrix();buildLoadout()}
+function msg(t,c){const m=$('ms');m.textContent=t;m.style.borderColor=c||'var(--bl)';m.style.opacity=1;clearTimeout(msT);msT=setTimeout(()=>m.style.opacity=0,2400)}
+function hm(k){const h=$('hm');h.style.opacity=1;h.style.color=k==1?'#e5533d':k==2?'#ffa726':'#fff';clearTimeout(h.t);h.t=setTimeout(()=>h.style.opacity=0,260)}
+function hurt(n){if(state!='play')return;if(P.sh>0)n*=.4;P.hp-=n;vg=.7;sfx('hurt');if(P.hp<=0){P.hp=0;end(false,'人員失去戰鬥能力')}}
+function reload(){if(WP.tool||W.rl>0||W.mag>=W.mx||W.res<=0)return;W.rl=WP.rl*CH.rl;sfx('rel')}
+function heal(){if(P.med>0&&P.hp<P.mx){P.hp=Math.min(P.mx,P.hp+45);P.med--;sfx('ok');msg('已使用醫療包','var(--ol)')}}
+function useTool(){W.cd=WP.cd;sfx('ok');if(WP.tool=='shield'){P.sh=3;msg('護盾啟動：3 秒內傷害減少 60%','var(--bl)')}else{G.scan=6;msg('掃描中：6 秒內顯示敵人與可互動物件','var(--bl)')}}
+function pickAll(ray,b=0){const o=ray.origin,d=ray.direction,r=[];for(const e of E){if(e.dead)continue;const h=sph(o,d,e.x,1.72,e.z,.3+b),c=sph(o,d,e.x,1.15,e.z,.5+b),l=sph(o,d,e.x,.5,e.z,.42+b);let t=-1,hd=false;if(h>=0){t=h;hd=true}else for(const v of[c,l])if(v>=0&&(t<0||v<t))t=v;if(t>=0)r.push({e,distance:t,hd})}return r}
+function fire(){if(W.rl>0||W.cd>0)return;if(WP.tool)return useTool();if(W.mag<=0){sfx('click');W.cd=.3;reload();return}
+W.mag--;W.cd=WP.cd;W.shots++;W.kick=WP.kk;W.heat=Math.min(1,W.heat+WP.ht);const rc=WP.rc*CH.rc;P.pitch=Math.min(1.45,P.pitch+rc*(1+Math.random()*.8));P.yaw+=(Math.random()-.5)*rc*.8;sfx('shot');flash();
+const mv=K.KeyW||K.KeyA||K.KeyS||K.KeyD||Math.hypot(J.x,J.y)>.2,sp=(W.ads>.5?WP.sa:WP.sh)+(mv?WP.sm:0)+W.heat*WP.sk;
+LH=0;cam.updateMatrixWorld();for(let q=0;q<(WP.pel||1);q++){rcP.setFromCamera(new T.Vector2((Math.random()-.5)*sp*2.6,(Math.random()-.5)*sp*2.6),cam);const wh=rcP.intersectObjects(WALLS,false)[0];
+if(WP.prc){pickAll(rcP.ray,SV.set.assist?.12:0).forEach(h=>{if(!wh||h.distance<wh.distance)hitE(h.e,h.hd?WP.dmg*2:WP.dmg,h.hd)})}else{const eh=pick(rcP.ray,SV.set.assist?.12:0);if(eh&&(!wh||eh.distance<wh.distance))hitE(eh.e,eh.hd?WP.dmg*2:WP.dmg,eh.hd)}}
+if(!LH)LS='未命中';if(!WP.sil)E.forEach(e=>{if(!e.dead&&e.state!='alert'&&Math.hypot(e.x-P.x,e.z-P.z)<28){e.state='alert';e.alertT=8;e.cd=.7+Math.random()*.5;e.last={x:P.x,z:P.z};sfx('alert')}})}
+let dpT=0,LH=0,LS='';function dmgPop(d,hd){const n=performance.now();if(n-dpT<90)return;dpT=n;const e=document.createElement('div');e.className='dp';e.textContent=(hd?'爆頭 ':'')+'-'+Math.round(d);e.style.color=hd?'#ffa726':'#fff';$('hud').appendChild(e);setTimeout(()=>e.remove(),700)}
+function hitE(e,d,hd){e.hp-=d;e.fl=.16;LH=1;LS=(hd?'命中頭部 ':'命中身體 ')+'-'+Math.round(d)+'，敵人剩餘 '+Math.max(0,Math.round(e.hp))+'/'+e.mx;e.mV.emissive.setHex(0xcccccc);e.mH.emissive.setHex(0xcccccc);dmgPop(d,hd);W.hits++;e.state='alert';e.alertT=8;e.last={x:P.x,z:P.z};
+if(e.hp<=0){e.dead=true;G.kills++;EP=EP.filter(p=>p.userData.e!==e);sfx('kill');msg('目標已擊倒');hm(1)}else{sfx('hit');hm(hd?2:0)}}
+function stepTo(e,tx,tz,sp,dt){let ax=tx-e.x,az=tz-e.z;const d=Math.hypot(ax,az)||1;ax/=d;az/=d;if(e.sideT>0){e.sideT-=dt;const a=e.side*1.2,c=Math.cos(a),s=Math.sin(a);[ax,az]=[ax*c-az*s,ax*s+az*c]}
+const ox=e.x,oz=e.z;move(e,ax*sp*dt,az*sp*dt,.4);if(Math.hypot(e.x-ox,e.z-oz)<sp*dt*.3){e.stuck+=dt;if(e.stuck>.35){e.stuck=0;e.side=Math.random()<.5?-1:1;e.sideT=.9;e.wpT=0}}else e.stuck=Math.max(0,e.stuck-dt);return d}
+function updE(e,dt){const g=e.g;if(e.dead){e.bar.visible=false;e.dieT+=dt;g.rotation.x=Math.min(1.5,e.dieT*4);if(e.dieT>3)g.visible=false;return}
+if(e.fl>0){e.fl-=dt;if(e.fl<=0){e.mV.emissive.setHex(0);e.mH.emissive.setHex(0)}}
+if(e.mfT>0){e.mfT-=dt;e.mf.visible=e.mfT>0}
+g.rotation.z=e.fl>0?e.fl*1.4:0;{const hr=Math.max(0,e.hp/e.mx);e.bar.visible=hr<1||e.state=='alert';e.bf.scale.x=Math.max(.001,hr);e.bf.position.x=-(1-hr)*.34;e.bar.rotation.y=Math.atan2(cam.position.x-e.x,cam.position.z-e.z)-e.yaw;e.bf.material.color.setHex(hr>.5?0x6bff8a:hr>.25?0xffa726:0xe5533d)}
+const D=DIFF[diff],dx=P.x-e.x,dz=P.z-e.z,dist=Math.hypot(dx,dz);
+e.losT-=dt;if(e.losT<=0){e.losT=.25;e.los=dist<34&&clear(e.x,1.3,e.z,P.x,1.3,P.z)}
+if(e.los){const dot=(dx*-Math.sin(e.yaw)+dz*-Math.cos(e.yaw))/(dist||1);if(e.state=='alert'||(dist<24&&dot>.2)||dist<7){if(e.state!='alert'){e.state='alert';e.cd=.6+Math.random()*.4;sfx('alert')}e.alertT=8;e.last={x:P.x,z:P.z}}}
+if(e.state=='alert'){if(!e.los){e.alertT-=dt;if(e.alertT<=0){e.state='patrol';e.wpT=0}}
+const tx=e.los?P.x:e.last.x,tz=e.los?P.z:e.last.z;e.yaw=la(e.yaw,Math.atan2(-(tx-e.x),-(tz-e.z)),Math.min(1,dt*8));
+if(e.los&&dist<14){e.sdT-=dt;if(e.sdT<=0){e.sdT=1+Math.random();e.sd=Math.random()<.5?-1:1}const px=-dz/dist,pz=dx/dist;move(e,px*e.sd*1.6*dt,pz*e.sd*1.6*dt,.4)}
+else if(Math.hypot(tx-e.x,tz-e.z)>1.5)stepTo(e,tx,tz,3.2,dt);
+if(e.los&&dist<28){e.cd-=dt;if(e.cd<=0){e.cd=D.fr*(.8+Math.random()*.5);sfx('eshot');e.mfT=.07;e.mf.visible=true;if(Math.random()<Math.max(.08,D.acc-dist*.015))hurt(D.dmg)}}}
+else{e.wpT-=dt;if(e.wpT<=0){e.wpT=4+Math.random()*4;e.wp={x:e.hx+(Math.random()-.5)*14,z:e.hz+(Math.random()-.5)*14}}
+if(Math.hypot(e.wp.x-e.x,e.wp.z-e.z)>1){e.yaw=la(e.yaw,Math.atan2(-(e.wp.x-e.x),-(e.wp.z-e.z)),Math.min(1,dt*4));stepTo(e,e.wp.x,e.wp.z,1.6,dt)}}
+g.position.set(e.x,0,e.z);g.rotation.y=e.yaw}
+/* ---------- 互動 ---------- */
+function near(){let b=null,bd=2.8;const fx=-Math.sin(P.yaw),fz=-Math.cos(P.yaw),t=(o,ty)=>{const dx=o.x-P.x,dz=o.z-P.z,d=Math.hypot(dx,dz);if(d<bd&&(dx*fx+dz*fz)/(d||1)>.4){bd=d;b={t:ty,o}}};
+L.forEach(l=>{if(!l.open)t(l,'loot')});if(!G.door)t(TERM,'term');return b}
+function openLoot(l){l.open=true;l.lid.material.color.setHex(0x333333);l.lid.material.emissive.setHex(0);const it=l.item;sfx('pick');
+if(it.k=='clue'){G.clues[it.i]=G.code[it.i];msg('取得情報紙條：密碼第 '+(it.i+1)+' 碼是「'+G.code[it.i]+'」','var(--am)')}
+else if(it.k=='med'){P.med++;msg('取得醫療包（按 H 使用）','var(--ol)')}
+else if(it.k=='ammo'){W.res+=WP.pk;msg('取得彈藥 +'+WP.pk,'var(--ol)')}
+else{G.val+=it.v;G.items.push(it);msg('取得 '+it.n+'（價值 '+it.v+'）','var(--am)')}}
+let kv='';
+function kpDraw(){$('kd').textContent=(kv+'___').slice(0,3).split('').join(' ');$('kn').textContent='已掌握線索：'+G.clues.map(c=>c==null?'？':c).join(' ')}
+function openKp(){state='kp';fh=ah=use=0;if(document.pointerLockElement)document.exitPointerLock();kv='';$('km').textContent=G.kpHint||'輸入 3 位密碼。線索紙條藏在不同的容器內。';kpDraw();$('kp').classList.add('on')}
+function closeKp(){$('kp').classList.remove('on');if(state=='kp'){state='play';if(!TOUCH)cv.requestPointerLock()}}
+(()=>{const g=$('kg');[1,2,3,4,5,6,7,8,9,'清除',0,'確認'].forEach(k=>{const b=document.createElement('button');b.className='b';b.textContent=k;b.onclick=()=>{sfx('click');if(k=='清除')kv='';else if(k=='確認'){if(kv==G.code.join('')){sfx('ok');G.door=true;if(G.onCode)G.onCode();else openDoor();msg(G.kpMsg||'閘門開啟！前往東側撤離區','var(--ol)');closeKp();return}
+G.fails++;kv='';sfx('bad');$('km').textContent='密碼錯誤（'+G.fails+' 次）'+(G.fails>=2?'。提示：三張紙條各對應第 1、2、3 碼，需搜索容器取得。':'');$('kp').firstChild.classList.remove('sh');void $('kp').firstChild.offsetWidth;$('kp').firstChild.classList.add('sh')}else if(kv.length<3)kv+=k;kpDraw()};g.appendChild(b)})})();
+$('kc').onclick=closeKp;
+/* ---------- 主更新 ---------- */
+function upd(dt){G.el+=dt;G.t-=dt;if(G.t<=0)return end(false,MS?'時間到，任務失敗':WD==2?'火把燃盡，時間用完':WD==1?'系統封鎖，行動失敗':'撤離時限已到');if(WD==0&&G.door&&DOOR.m.position.y>-2.4)DOOR.m.position.y-=dt*2.2;
+let ix=(K.KeyD?1:0)-(K.KeyA?1:0)+J.x,iy=(K.KeyW?1:0)-(K.KeyS?1:0)-J.y;const l=Math.hypot(ix,iy);if(l>1){ix/=l;iy/=l}
+const sp=(W.ads>.5?2.6:(K.ShiftLeft||J.run)?6.4:4.3)*CH.spd,fx=-Math.sin(P.yaw),fz=-Math.cos(P.yaw);
+move(P,(fx*iy+Math.cos(P.yaw)*ix)*sp*dt,(fz*iy-Math.sin(P.yaw)*ix)*sp*dt,.4);
+W.cd-=dt;if(P.sh>0)P.sh-=dt;if(G.scan>0)G.scan-=dt;W.heat=Math.max(0,W.heat-dt*3);W.kick=Math.max(0,W.kick-dt*.5);W.ads+=((ah?1:0)-W.ads)*Math.min(1,dt*12);
+if(W.rl>0){W.rl-=dt;if(W.rl<=0){const n=Math.min(W.mx-W.mag,W.res);W.mag+=n;W.res-=n}}
+applyLook();placeCam(0);
+if((G.at-=dt)<=0){G.at=.07;rcA.setFromCamera(V0,cam);const h=pick(rcA.ray,SV.set.assist?.12:0);let ok=!!h;if(ok){const w=rcA.intersectObjects(WALLS,false)[0];ok=!w||h.distance<w.distance}$('xh').classList.toggle('on',ok);
+let nr=false;if(SV.set.assist){const o=rcA.ray.origin,d=rcA.ray.direction;for(const e of E){if(e.dead||!e.los)continue;const vx=e.x-o.x,vy=1.2-o.y,vz=e.z-o.z,n=Math.hypot(vx,vy,vz);if(n<45&&(vx*d.x+vy*d.y+vz*d.z)/n>.996){nr=true;break}}}
+G.fr=!SV.set.assist?1:ok?.45:nr?.65:1}
+if(fh)fire();
+const tg=MS?MS.near():WD==2?nearR():WD==1?nearL():near(),mvg=l>.1?Math.sin(G.el*9)*.03:0;
+if(!TPS)placeCam(mvg);updPM(dt,l);const nf=75-(75-WP.fov)*W.ads;if(cam.fov!=nf){cam.fov=nf;cam.updateProjectionMatrix()}
+gun.position.set(.22*(1-W.ads),-.2+.04*W.ads-(W.rl>0?.12:0)+mvg*.5,-.45+W.kick);gun.rotation.x=W.rl>0?-.6:0;
+let pr='',pg=0;if(MS){[pr,pg]=MS.step(dt,tg)}else if(WD==2){[pr,pg]=ruinStep(dt,tg)}else if(WD==1){[pr,pg]=labStep(dt,tg)}else{if(tg){pr=tg.t=='term'?'按 E 使用終端機':'按住 E 搜索容器';if(tg.t=='loot'&&use){G.s+=dt;pg=G.s/1.1;if(G.s>=1.1){openLoot(tg.o);G.s=0}}else G.s=0;if(tg.t=='term'&&use&&!useP)openKp()}else G.s=0;useP=use;
+if(G.door&&Math.hypot(P.x-27.5,P.z)<3){G.ext+=dt;pr='撤離中…請留在撤離區';pg=G.ext/5;if(G.ext>=5)return end(true,'成功撤離')}else G.ext=0;}
+$('pr').textContent=pr;$('pb').style.display=pg>0?'block':'none';$('pb').firstChild.style.width=Math.min(100,pg*100)+'%';
+E.forEach(e=>updE(e,dt));vg=Math.max(0,vg-dt*.8);$('vg').style.opacity=Math.min(1,vg+(P.hp<30?.25:0));
+if((G.hu-=dt)<=0){G.hu=.12;$('dg').textContent=LS;$('kill-count-display').textContent=MS&&MS.hud?MS.hud():E.length?'擊倒 '+G.kills+' / '+E.length:'';$('hp').textContent=Math.ceil(P.hp);$('hb').style.width=(P.hp/P.mx*100)+'%';$('hb').style.background=P.hp<30?'var(--rd)':'var(--ol)';$('md').textContent=P.med;
+$('am').textContent=WP.tool?WP.n.split(' ')[0]+(W.cd>0?' 冷卻 '+Math.ceil(W.cd)+' 秒':' 就緒'):W.rl>0?'換彈中…':WP.n.split(' ')[0]+' '+W.mag+' / '+W.res;const t=Math.max(0,Math.ceil(G.t));$('tm').textContent=Math.floor(t/60)+':'+String(t%60).padStart(2,'0');
+const ck=G.clues.filter(c=>c!=null).length;
+$('ob').innerHTML=MS?MS.ob():WD==2?ruinOb():WD==1?labOb():'<b style="color:var(--bl)">任務目標</b><br>'+(ck==3?'✓':'□')+' 取得線索 '+ck+'/3<br>'+(G.door?'✓':'□')+' 終端機輸入密碼<br>'+(G.ext>0||G.door?'□':'□')+' 撤離區停留 5 秒<br><b style="color:var(--am)">密碼</b>　'+G.clues.map(c=>c==null?'？':c).join('')+' ・價值 '+G.val+(TOUCH?'':'<br>'+G.items.map(i=>i.n+' '+i.v).join('<br>'));}
+rad()}
+const RC=$('rd').getContext('2d');
+function rad(){const c=RC,s=2.4;c.clearRect(0,0,110,110);c.save();c.translate(55,55);c.beginPath();c.arc(0,0,54,0,7);c.fillStyle='rgba(10,16,16,.65)';c.fill();c.strokeStyle='#4fc3ff88';c.stroke();
+const f=(x,z)=>{const dx=x-P.x,dz=z-P.z;return[(dx*Math.cos(P.yaw)-dz*Math.sin(P.yaw))*s,(dx*Math.sin(P.yaw)+dz*Math.cos(P.yaw))*s]},
+dot=(p,col,r,cl)=>{let[x,y]=p;const d=Math.hypot(x,y);if(d>50){if(!cl)return;x*=50/d;y*=50/d}c.fillStyle=col;c.beginPath();c.arc(x,y,r,0,7);c.fill()};
+E.forEach(e=>{if(e.dead)return;const d=Math.hypot(e.x-P.x,e.z-P.z);if(e.state=='alert'&&d<30||d<9)dot(f(e.x,e.z),e.state=='alert'?'#e5533d':'#ffa726',3)});
+if(G.scan>0){E.forEach(e=>{if(!e.dead)dot(f(e.x,e.z),'#ffa726',3)});(MS?MS.ia:WD==2?RU.ia:WD==1?LB.ia:L.concat([TERM])).forEach(o=>{if(!o.done&&!o.open)dot(f(o.x,o.z),'#4fc3ff',2)})}const o=WD>0||MS?G.obj:G.door?{x:27.5,z:0}:TERM;if(o)dot(f(o.x,o.z),WD>0||MS||G.door?'#6bff8a':'#4fc3ff',4,1);
+c.fillStyle='#fff';c.beginPath();c.moveTo(0,-5);c.lineTo(4,4);c.lineTo(-4,4);c.fill();c.restore()}
+/* ---------- 流程 ---------- */
+const show=(id,on)=>$(id).classList.toggle('on',on);
+function end(win,why){if(state=='end')return;state='end';fh=ah=use=0;if(document.pointerLockElement)document.exitPointerLock();
+const D=DIFF[diff],used=D.time-G.t,score=G.val+G.kills*150+(win?500+Math.floor(G.t)*2:0);SV.runs++;if(win){SV.wins++;SV.best[diff]=Math.max(SV.best[diff]||0,score)}save();
+$('er').textContent=D.n+'難度・'+why;$('et').textContent=win?'任務成功':'任務失敗';$('et').style.color=win?'var(--ol)':'var(--rd)';
+const stars=win?(MS?MS.stars():1+(WD==2?(G.tr>=6)+(G.dmgT<=20):WD==1?(G.hid?1:0)+(G.lz==0?1:0):(G.t>D.time*.4)+(P.hp>=P.mx*.5))):0,gain=win?Math.floor(score/10)+stars*50:Math.floor(score/40);SV.xp=(SV.xp||0)+gain;
+const r=[['用時',Math.floor(used/60)+'分'+Math.floor(used%60)+'秒'],WD==2?['寶物',G.tr+' / 6']:['擊倒',G.kills+' / '+E.length],WD==2?['受陷阱傷害',G.dmgT]:['命中率',W.shots?Math.min(100,Math.round(W.hits/W.shots*100))+'%':'—'],['戰利品價值',G.val],['總分',score],['此難度最佳',SV.best[diff]||'—'],['星級','★'.repeat(stars)+'☆'.repeat(3-stars)],['經驗值','+'+gain]];if(MS){r[1]=['成果',MS.sum()];r[2]=['模式',mdOf(SV.sel.md).n]}
+$('es').innerHTML=r.map(a=>'<span>'+a[0]+'</span><span>'+a[1]+'</span>').join('');const wk=SV.sel.wd+':'+SV.sel.md,wr=SV.wr[wk]||(SV.wr[wk]={runs:0,wins:0,best:0});wr.runs++;if(win){wr.wins++;wr.best=Math.max(wr.best,score);wr.stars=Math.max(wr.stars||0,stars);if(diff=='hard')wr.hard=1}const nb=achCheck();save();const nu=win?OUTF.filter(o=>o.need&&o.need==SV.wins):[];if(nu.length)$('es').innerHTML+='<span>解鎖造型</span><span>'+nu.map(o=>o.n).join('、')+'</span>';if(nb.length)$('es').innerHTML+='<span>新成就</span><span>'+nb.join('、')+'</span>';show('en',true);show('ps',false)}
+function start(){if(!canPlay(SV.sel.wd,SV.sel.md))return;au();resetRun();relAll();if(TOUCH){const de=document.documentElement,rf=de.requestFullscreen||de.webkitRequestFullscreen;if(rf&&!document.fullscreenElement)try{const p=rf.call(de);if(p&&p.catch)p.catch(()=>{})}catch(x){}}['menu','en','ps','kp','sel','more'].forEach(i=>show(i,false));$('hud').style.display='block';$('tc').style.display=TOUCH?'block':'none';gun.visible=!TPS;state='play';if(!TOUCH)cv.requestPointerLock();msg('任務開始：搜索線索，開啟閘門，撤離','var(--ol)')}
+function pause(){if(state!='play')return;state='pause';fh=ah=use=0;$('ba').classList.remove('tg');if(document.pointerLockElement)document.exitPointerLock();show('ps',true)}
+function resume(){show('ps',false);state='play';if(!TOUCH)cv.requestPointerLock()}
+function lobby(){state='menu';['en','ps','kp','sel'].forEach(i=>show(i,false));if(document.pointerLockElement)document.exitPointerLock();$('hud').style.display='none';$('tc').style.display='none';gun.visible=false;PM.visible=false;show('menu',true);ui();lobUI();refreshPreview()}
+function ui(){$('df').innerHTML='';Object.keys(DIFF).forEach(k=>{const b=document.createElement('button');b.className='b'+(k==diff?' on':'');b.textContent=DIFF[k].n;b.onclick=()=>{diff=k;ui()};$('df').appendChild(b)});
+$('sn').textContent='音效：'+(snd?'開':'關');$('rec').textContent='戰績：成功撤離 '+SV.wins+' / 出擊 '+SV.runs+'　最佳分數（'+DIFF[diff].n+'）'+(SV.best[diff]||'—');
+$('gl').innerHTML=GAMES.map(g=>'<div class="gi'+(g.ok?' ok':'')+'"><b>'+g.n+'</b><span>'+g.d+'</span></div>').join('');
+document.querySelectorAll('.sv').forEach(x=>x.value=SV.set.sens);document.querySelectorAll('.aa').forEach(x=>x.textContent='瞄準輔助：'+(SV.set.assist?'開':'關'));$('lm').textContent=WORLDS[SV.sel.wd].n+'・'+mdOf(SV.sel.md).n+'・'+DIFF[diff].n+'・Lv'+(Math.floor(Math.sqrt((SV.xp||0)/100))+1)}
+document.querySelectorAll('.sv').forEach(x=>x.addEventListener('input',()=>{SV.set.sens=+x.value;save();document.querySelectorAll('.sv').forEach(y=>y.value=SV.set.sens)}));
+document.querySelectorAll('.aa').forEach(x=>x.onclick=()=>{SV.set.assist=!SV.set.assist;save();ui()});
+$('go').onclick=()=>{sfx('click');selUI();show('sel',true)};$('ag').onclick=start;$('rst').onclick=start;$('rsm').onclick=resume;$('lb1').onclick=lobby;$('lb2').onclick=lobby;$('sn').onclick=()=>{snd=!snd;ui()};
+document.addEventListener('pointerlockchange',()=>{if(!document.pointerLockElement&&state=='play'&&!TOUCH)pause()});
+/* ---------- 輸入 ---------- */
+addEventListener('contextmenu',e=>e.preventDefault());
+cv.addEventListener('mousedown',e=>{if(state!='play'||TOUCH)return;if(document.pointerLockElement!=cv){cv.requestPointerLock();return}if(e.button==0)fh=1;if(e.button==2)ah=1});
+addEventListener('mouseup',e=>{if(e.button==0)fh=0;if(e.button==2)ah=0});
+addEventListener('mousemove',e=>{if(state=='play'&&document.pointerLockElement==cv){P.yaw-=e.movementX*.0022;P.pitch=Math.max(-1.45,Math.min(1.45,P.pitch-e.movementY*.0022))}});
+addEventListener('keydown',e=>{K[e.code]=1;if(state!='play')return;if(e.code=='KeyR')reload();if(e.code=='KeyH')heal();if(e.code=='KeyV')toggleView();if(e.code=='KeyE')use=1;if(e.code=='Tab'){e.preventDefault();$('ob').classList.toggle('hide')}});
+addEventListener('keyup',e=>{K[e.code]=0;if(e.code=='KeyE')use=0});
+const RELS=[];let fq=0;
+(()=>{const hold=(el,on,off,drag)=>{let pid=null,lx=0,ly=0;const rel=()=>{if(pid!=null){pid=null;el.classList.remove('dn');if(off)off()}};RELS.push(rel);
+el.addEventListener('pointerdown',e=>{e.preventDefault();if(pid!=null)return;pid=e.pointerId;lx=e.clientX;ly=e.clientY;try{el.setPointerCapture(pid)}catch(x){}el.classList.add('dn');if(on)on()});
+el.addEventListener('pointermove',e=>{if(e.pointerId!=pid)return;if(drag){LK.x+=e.clientX-lx;LK.y+=e.clientY-ly}lx=e.clientX;ly=e.clientY});
+['pointerup','pointercancel','lostpointercapture'].forEach(t=>el.addEventListener(t,e=>{if(e.pointerId==pid)rel()}))};
+const fon=()=>{fq++;fh=1},foff=()=>{fq=Math.max(0,fq-1);if(!fq)fh=0};
+hold($('lz'),null,null,1);hold($('bf'),fon,foff,1);hold($('bl'),fon,foff,0);hold($('bu'),()=>{use=1},()=>{use=0});hold($('br'),reload);hold($('bh'),heal);hold($('bp'),pause);hold($('bv'),toggleView);
+$('ba').addEventListener('pointerdown',e=>{e.preventDefault();ah=ah?0:1;$('ba').classList.toggle('tg',!!ah)});
+const jz=$('jz'),jb=$('jb'),jk=$('jk'),RJ=46;let jid=null,ox=0,oy=0;
+const jrel=()=>{jid=null;J.x=J.y=0;J.run=0;jb.classList.remove('run','act');jb.style.left=jb.style.top=jb.style.bottom='';jk.style.transform=''};RELS.push(jrel);
+jz.addEventListener('pointerdown',e=>{e.preventDefault();if(jid!=null)return;jid=e.pointerId;ox=e.clientX;oy=e.clientY;try{jz.setPointerCapture(jid)}catch(x){}jb.classList.add('act');jb.style.left=ox-55+'px';jb.style.top=oy-55+'px';jb.style.bottom='auto'});
+jz.addEventListener('pointermove',e=>{if(e.pointerId!=jid)return;const dx=e.clientX-ox,dy=e.clientY-oy,d=Math.hypot(dx,dy),ux=d?dx/d:0,uy=d?dy/d:0,mm=Math.min(1,d/RJ),k=mm<.12?0:(mm-.12)/.88;
+J.x=ux*k;J.y=uy*k;J.run=mm>.96;jb.classList.toggle('run',J.run);jk.style.transform='translate('+ux*Math.min(d,RJ)+'px,'+uy*Math.min(d,RJ)+'px)';
+if(d>RJ*1.5){ox+=dx-ux*RJ*1.5;oy+=dy-uy*RJ*1.5;jb.style.left=ox-55+'px';jb.style.top=oy-55+'px'}});
+['pointerup','pointercancel','lostpointercapture'].forEach(t=>jz.addEventListener(t,e=>{if(e.pointerId==jid)jrel()}))})();
+const relAll=()=>{RELS.forEach(f=>f());fh=ah=use=0;fq=0;LK.x=LK.y=0;$('ba').classList.remove('tg')};
+addEventListener('blur',relAll);document.addEventListener('visibilitychange',()=>{if(document.hidden){relAll();if(state=='play')pause()}});
+['gesturestart','gesturechange','gestureend'].forEach(t=>document.addEventListener(t,e=>e.preventDefault()));
+document.addEventListener('touchmove',e=>{if(!(e.target.closest&&e.target.closest('.ov')))e.preventDefault()},{passive:false});
+document.addEventListener('dblclick',e=>e.preventDefault());
+/* ---------- 主迴圈 ---------- */
+let last=performance.now(),fa=.0167,fc2=0;const fpsEl=$('fp'),MAXD=DPR;
+function loop(n){requestAnimationFrame(loop);const dt=Math.min(.05,(n-last)/1000);fa=fa*.95+dt*.05;fc2+=dt;
+if(fc2>2){fc2=0;if(state=='play'){const f=1/fa;fpsEl.textContent=Math.round(f)+' FPS・解析度 '+DPR.toFixed(2);if(f<26&&DPR>.7){DPR=Math.max(.7,DPR-.15);R.setPixelRatio(DPR);rs()}else if(f>56&&DPR<MAXD){DPR=Math.min(MAXD,DPR+.1);R.setPixelRatio(DPR);rs()}}}last=n;
+if(state=='play')upd(dt);else if(state=='menu')updPV(dt,n);
+R.render(state=='menu'?PS:sc,state=='menu'?pcam:cam)}
+resetRun();ui();lobUI();refreshPreview();requestAnimationFrame(loop);
+</script></body></html>
